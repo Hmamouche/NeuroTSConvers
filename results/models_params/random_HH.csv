@@ -1,0 +1,6 @@
+region;dm_method;models_params;predictors;selected_predictors;selected_indices;recall;precision;fscore
+region_3;None;{'strategy': 'stratified', 'random_state': None};{'speech_left_ts': ['IPU']};['IPU_left_t5', 'IPU_left_t4', 'IPU_left_t3'];[0, 1, 2];0.529320987654321;0.528763654688189;0.5290374320792572
+region_1;None;{'strategy': 'stratified', 'random_state': None};{'eyes_gradient_ts': ['Vx', 'Vy']};['Vx_t5', 'Vx_t4', 'Vx_t3', 'Vy_t5', 'Vy_t4', 'Vy_t3'];[0, 1, 2, 3, 4, 5];0.5223765432098766;0.5169547062932013;0.5193831006158501
+region_2;None;{'strategy': 'stratified', 'random_state': None};{'speech_left_ts': ['IPU']};['IPU_left_t5', 'IPU_left_t4', 'IPU_left_t3'];[0, 1, 2];0.5262345679012346;0.5174827898519131;0.5211197224827212
+region_5;None;{'random_state': None, 'strategy': 'stratified'};{'speech_ts': ['IPU']};['IPU_t5', 'IPU_t4', 'IPU_t3'];[0, 1, 2];0.5478395061728395;0.5448521456905878;0.5462667901095641
+region_4;None;{'strategy': 'stratified', 'random_state': None};{'speech_ts': ['IPU']};['IPU_t5', 'IPU_t4', 'IPU_t3'];[0, 1, 2];0.5470679012345679;0.5415787105178845;0.5440258620985535
