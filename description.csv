@@ -1,7 +1,7 @@
 Modality,Variable ,Description, Type, Remarque
 Speech,signal,Signal envelope,continue,
  ,talk,binary variable associated to IPU,binary,
- ,IUP,IPU durations continue,
+ ,IUP,IPU durations, continue,
  ,overlap,,continue,
  ,filled_breaks ,, continue,
  ,main_feed_items , ,continue,
