@@ -20,7 +20,7 @@ Video,gaze_angle_x, , continue,
  ,pose_Ry,Head rotation relative to the y axis, continue,
  ,pose_Rz,Head rotation relative to the z axis, continue,
  ,AU0i_r,ith Facial Action Unit for i in [1 4 5 6 7 9 10 12 14 15 17 20 23 25 26 45] , continue,
- ,(x_i  y_i), L2D landmarks, continue, voir https://www.cs.cmu.edu/~face/facs.html pour plus de détails.
+ ,(x_i  y_i), L2D landmarks, continue, see https://www.cs.cmu.edu/~face/facs.html for more details.
  ,video_emotions, Emotions à partir de visage,discrète,this variable is optional because facial movements express emotions (https://en.wikipedia.org/wiki/Facial_Action_Coding_System)
 Eyetracking, (x y),Gaze coordinate, continues,
  ,(Vx Vy),Speed of the gaze coordinate, continues,
