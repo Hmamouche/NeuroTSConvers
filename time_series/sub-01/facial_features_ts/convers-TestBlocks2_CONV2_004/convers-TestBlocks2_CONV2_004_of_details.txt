@@ -1,0 +1,13 @@
+Input:data/videos/sub-01/convers-TestBlocks2_CONV2_004.avi
+Input full path:/home/youssef/multiModal/data/videos/sub-01/convers-TestBlocks2_CONV2_004.avi
+Camera parameters:500,500,320,240
+Output HOG:convers-TestBlocks2_CONV2_004.hog
+Output video:convers-TestBlocks2_CONV2_004.avi
+Output aligned directory:convers-TestBlocks2_CONV2_004_aligned
+Output csv:convers-TestBlocks2_CONV2_004.csv
+Gaze: 1
+AUs: 1
+Landmarks 2D: 1
+Landmarks 3D: 1
+Pose: 1
+Shape parameters: 1

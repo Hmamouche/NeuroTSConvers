@@ -1,0 +1,13 @@
+Input:data/videos/sub-10/convers-TestBlocks1_CONV1_005.avi
+Input full path:/home/youssef/Github/PhysSocial/data/videos/sub-10/convers-TestBlocks1_CONV1_005.avi
+Camera parameters:500,500,320,240
+Output HOG:convers-TestBlocks1_CONV1_005.hog
+Output video:convers-TestBlocks1_CONV1_005.avi
+Output aligned directory:convers-TestBlocks1_CONV1_005_aligned
+Output csv:convers-TestBlocks1_CONV1_005.csv
+Gaze: 1
+AUs: 1
+Landmarks 2D: 1
+Landmarks 3D: 1
+Pose: 1
+Shape parameters: 1
