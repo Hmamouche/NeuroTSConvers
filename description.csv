@@ -1,27 +1,27 @@
-Modality Variable  Description  Type  Remarque
-Speech signal Signal envelope continue
- talk binary variable associated to IPU binary
- IUP IPU durations continue 
- overlap  continue
- filled_breaks    continue
- main_feed_items    continue
- main_discourse_items    continue
- Laughers  continue
- main_particles_items    continue
- reaction_time    continue
- richess-lexicale_1   (nbr of adjectifs + nbr adverbes) / (nbr de tokens)  continue
- richess-lexicale_2   (nbr of different tokens / total) (nb of token) continue
-Video gaze_angle_x    continue
- gaze_angle_y   continue
- pose_Tx Head movement with respect to the x axis  continue
- pose_Ty Head movement with respect to the y axis  continue
- pose_Tz Head movement with respect to the z axis  continue
- pose_Rx Head rotation relative to the x axis  continue
- pose_Ry Head rotation relative to the y axis  continue
- pose_Rz Head rotation relative to the z axis  continue
- AU0i_r Ith Facial Action Unit,  I in [1,4,5,6,7,9,10,12,14,15,17,20,23,25,26,45]   continue
- (x_i, y_i)  L2D landmarks  continue  voir https://www.cs.cmu.edu/~face/facs.html pour plus de détails.
- video_emotions  Emotions à partir de visage discrète this variable is optional because facial movements express emotions (https://en.wikipedia.org/wiki/Facial_Action_Coding_System)
-Eyetracking x, y Gaze coordinate
- Vx, Vy Speed of the gaze coordinate
- saccades Saccades
+Modality,Variable ,Description, Type, Remarque
+Speech,signal,Signal envelope,continue,
+ ,talk,binary variable associated to IPU,binary,
+ ,IUP,IPU durations continue,
+ ,overlap,,continue,
+ ,filled_breaks ,, continue,
+ ,main_feed_items , ,continue,
+ ,main_discourse_items ,, continue,
+ ,Laughers,,continue,
+ ,main_particles_items ,, continue,
+ ,reaction_time , ,continue,
+ ,richess-lexicale_1 , (nbr of adjectifs + nbr adverbes) / (nbr de tokens), continue,
+ ,richess-lexicale_2 , (nbr of different tokens / total) (nb of token),continue,
+Video,gaze_angle_x, , continue,
+ ,gaze_angle_y,, continue,
+ ,pose_Tx,Head movement with respect to the x axis, continue,
+ ,pose_Ty,Head movement with respect to the y axis, continue,
+ ,pose_Tz,Head movement with respect to the z axis, continue,
+ ,pose_Rx,Head rotation relative to the x axis, continue,
+ ,pose_Ry,Head rotation relative to the y axis, continue,
+ ,pose_Rz,Head rotation relative to the z axis, continue,
+ ,AU0i_r,Ith Facial Action Unit,  I in [1 4 5 6 7 9 10 12 14 15 17 20 23 25 26 45] , continue,
+ ,(x_i, y_i), L2D landmarks, continue, voir https://www.cs.cmu.edu/~face/facs.html pour plus de détails.
+ ,video_emotions, Emotions à partir de visage,discrète,this variable is optional because facial movements express emotions (https://en.wikipedia.org/wiki/Facial_Action_Coding_System)
+Eyetracking,x, y,Gaze coordinate,,
+ ,Vx, Vy,Speed of the gaze coordinate,,
+ ,saccades,Saccades,,
