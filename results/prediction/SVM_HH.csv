@@ -1,6 +1,6 @@
-region;dm_method;models_params;predictors;selected_predictors;selected_indices;recall;precision;fscore
-region_1;None;{'kernel': 'sigmoid', 'C': 0.8};{'face_ts': ['Face']};['Face'];[0];0.5547839506172839;0.547925751773735;0.5511018840932934
-region_5;None;{'kernel': 'sigmoid', 'C': 0.8};{'speech_left_ts': ['IPU']};['IPU_left'];[0];0.5733024691358025;0.564435604687399;0.5683892180818102
-region_2;None;{'kernel': 'sigmoid', 'C': 0.8};{'speech_left_ts': ['IPU']};['IPU_left'];[0];0.6442901234567902;0.6189289826788819;0.6115983065398439
-region_3;None;{'C': 0.8, 'kernel': 'sigmoid'};{'speech_left_ts': ['IPU']};['IPU_left'];[0];0.6165123456790124;0.5938441171346077;0.5909744097407863
-region_4;None;{'C': 0.8, 'kernel': 'sigmoid'};{'speech_ts': ['IPU', 'Signal']};['IPU', 'Signal'];[0, 1];0.6427469135802469;0.5941160331262776;0.5863383451002177
+region	dm_method	models_params	predictors	selected_predictors	selected_indices	recall	precision	fscore
+region_1	None	{'C': 0.8, 'kernel': 'sigmoid'}	{'eyetracking_ts': ['Face']}	['Face']	[0]	0.5547839506172839	0.547925751773735	0.5511018840932934
+region_2	None	{'C': 0.8, 'kernel': 'sigmoid'}	{'speech_left_ts': ['IPU']}	['IPU_left']	[0]	0.6442901234567902	0.6189289826788819	0.6115983065398439
+region_3	None	{'C': 0.8, 'kernel': 'sigmoid'}	{'speech_left_ts': ['IPU']}	['IPU_left']	[0]	0.6165123456790124	0.5938441171346077	0.5909744097407863
+region_4	None	{'C': 0.8, 'kernel': 'sigmoid'}	{'speech_ts': ['IPU', 'Signal']}	['IPU', 'Signal']	[0, 1]	0.6427469135802469	0.5941160331262776	0.5863383451002177
+region_5	None	{'C': 0.8, 'kernel': 'sigmoid'}	{'speech_left_ts': ['IPU']}	['IPU_left']	[0]	0.5733024691358025	0.564435604687399	0.5683892180818102

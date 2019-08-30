@@ -1,6 +1,0 @@
-region;dm_method;models_params;predictors;selected_predictors;selected_indices;recall;precision;fscore
-region_1;None;{'strategy': 'uniform', 'random_state': None};{'eyes_gradient_ts': ['Vx', 'Vy']};['Vx_t5', 'Vx_t4', 'Vx_t3', 'Vx_t2', 'Vx_t1', 'Vy_t5', 'Vy_t4', 'Vy_t3', 'Vy_t2', 'Vy_t1'];[0, 1, 2, 3, 4, 5, 6, 7, 8, 9];0.49151234567901236;0.6790800696907672;0.5406747283924167
-region_2;None;{'strategy': 'uniform', 'random_state': None};{'speech_ts': ['IPU']};['IPU_t5', 'IPU_t4', 'IPU_t3', 'IPU_t2', 'IPU_t1'];[0, 1, 2, 3, 4];0.49382716049382713;0.7039029925910872;0.5539905532242697
-region_3;None;{'strategy': 'stratified', 'random_state': None};{'speech_ts': ['IPU']};['IPU_t5', 'IPU_t4', 'IPU_t3', 'IPU_t2', 'IPU_t1'];[0, 1, 2, 3, 4];0.6396604938271605;0.6342893484884746;0.6369255155053445
-region_4;None;{'strategy': 'uniform', 'random_state': None};{'speech_ts': ['IPU']};['IPU_t5', 'IPU_t4', 'IPU_t3', 'IPU_t2', 'IPU_t1'];[0, 1, 2, 3, 4];0.5185185185185185;0.711604914723507;0.573765150294502
-region_5;None;{'strategy': 'stratified', 'random_state': None};{'speech_ts': ['IPU']};['IPU_t5', 'IPU_t4', 'IPU_t3', 'IPU_t2', 'IPU_t1'];[0, 1, 2, 3, 4];0.6882716049382716;0.6823294756439765;0.6852605920314254
