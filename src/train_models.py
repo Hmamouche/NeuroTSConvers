@@ -66,13 +66,14 @@ def train_model_area (subjects, target_column, convers, lag):
 	else : convers_type = "HR"
 
 	""" extract best model, and the best parameters founded based on fscore measure """
-	prediction_files = glob. glob ("results/prediction/*%s.csv"%convers_type)
+	prediction_files = glob. glob ("results/prediction/*%s.tsv"%convers_type)
 	best_score = 0
 
 	for filename in prediction_files:
 
 		model_name = filename. split ('/')[-1]. split ('_') [0]
-		pred_data = pd.read_csv (filename,  sep = ';', header = 0, na_filter = False, index_col = False)
+		pred_data = pd.read_csv (filename,  sep = '\t', header = 0, na_filter = False, index_col = False)
+
 		pred_data =  pred_data. loc [pred_data ["region"] == target_column]
 
 		if (pred_data. shape [0] == 0):
@@ -87,7 +88,7 @@ def train_model_area (subjects, target_column, convers, lag):
 			best_results = pred_results
 
 
-	selected_features =  best_results ["selected_predictors"]
+	#selected_features =  best_results ["selected_predictors"]
 	selected_indices  = literal_eval (best_results ["selected_indices"])
 	best_behavioral_predictors = literal_eval (best_results ["predictors"]. replace("'", '"'))
 	best_model_params = literal_eval (best_results ["models_params"]. replace("'", '"'))

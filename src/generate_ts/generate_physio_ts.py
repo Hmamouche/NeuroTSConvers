@@ -7,6 +7,52 @@ import sys
 import argparse
 
 
+
+def correspondance (sujet_um):
+
+
+    if sujet_um == "13":
+        sujets_corresp = "12"
+
+    elif sujet_um == "14":
+        sujets_corresp = "13"
+
+    elif sujet_um == "15":
+        sujets_corresp = "14"
+
+    elif sujet_um == "16":
+        sujets_corresp = "15"
+
+    elif sujet_um == "17":
+        sujets_corresp = "16"
+
+    elif sujet_um == "18":
+        sujets_corresp = "17"
+
+    elif sujet_um == "20":
+        sujets_corresp = "18"
+
+    elif sujet_um == "21":
+        sujets_corresp = "19"
+
+    elif sujet_um == "22":
+        sujets_corresp = "20"
+
+    elif sujet_um == "23":
+        sujets_corresp = "21"
+
+    elif sujet_um == "24":
+        sujets_corresp = "22"
+
+    elif sujet_um == "25":
+        sujets_corresp = "23"
+
+    else:
+        sujets_corresp = sujet_um
+
+    return sujets_corresp
+
+
 #======================================================
 
 def nearestPoint(vect, value):
@@ -48,14 +94,16 @@ def convers_to_df (data, colnames, index, begin, end, type_conv, num_conv):
 
     convers_data = pd.DataFrame (data [begin:end]) #, index = index_normalized)
 
-    #gradient = np. gradient (convers_data. values, axis = 0)
+    if convers_data. shape[0]  == 49:
+        #print (convers_data. iloc[48,:])
+        convers_data = convers_data. append (convers_data. iloc[48,:], ignore_index = True)
+
+
     diff = convers_data. diff (axis = 0, periods = 1)
     diff. iloc [0, :] = convers_data. iloc [0, :]
 
     rolling_mean = convers_data. rolling (window = 3). mean()
     rolling_mean. iloc [0: 2, :] = convers_data. iloc [0: 2,:]
-
-
 
     #convers_data. insert (0, "Real time", index[begin:end])
     filename = "time_series/" + subject + "/new_physio_ts/convers-" + testBlock + "_" + type_conv + "_" + "%03d"%num_conv + ".pkl"
@@ -79,8 +127,7 @@ def convers_to_df (data, colnames, index, begin, end, type_conv, num_conv):
     convers_data.to_pickle (filename)
     diff.to_pickle (diff_filename)
     rolling_mean. to_pickle (smooth_filename)
-    #convers_data.to_csv (filename, sep=';', index=False)
-    #print (convers_data)
+
 
 #======================================================
 # --- USAGE
@@ -130,14 +177,11 @@ if __name__ == '__main__':
 
         print (subject, 15 * '*', '\n')
 
-        num_subj = '0' + subject.split('-')[-1]
+        num_subj = subject.split('-')[-1]
+        num_sujet_physio = '0' + correspondance (num_subj)
 
         #data_dat = sio.loadmat("data/physio_data/denoised/ROI_Subject" + num_subj + "_Condition000.mat")
-        data_dat = sio.loadmat("data/new_physio_data/ROIdata/ROI_Subject" + num_subj + "_Condition000.mat")
-
-        #print (data_dat['names']. tolist ())
-        #exit (1)
-        # ------------------ Analyse denoised data
+        data_dat = sio.loadmat("data/new_physio_data/ROIdata/ROI_Subject" +  num_sujet_physio + "_Condition000.mat")
 
         '''print ("the number of regions: %s"%str(data['data'][0].shape))
 		print ("the number of voxels in each region: %s"%str(data['data'][0][0].shape[1]))
@@ -170,7 +214,7 @@ if __name__ == '__main__':
                     break
 
         # if there is no logfile, we continue to the next subject
-        if len(testBlocks) == 0:
+        if len (testBlocks) == 0:
             print ("subject %s has no logfiles" % subject)
             continue
 
@@ -181,7 +225,6 @@ if __name__ == '__main__':
             df = df [['condition', 'image', 'duration', 'ONSETS_MS']]
 
             df = add_duration(df)
-
 
             hh_convers = df [df.condition.str.contains("CONV1")] [['condition', 'begin', 'fin']]
             hr_convers = df [df.condition.str.contains("CONV2")] [['condition', 'begin', 'fin']]

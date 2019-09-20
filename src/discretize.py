@@ -108,6 +108,7 @@ if __name__ == '__main__':
 	parser.add_argument("--nbins", "-k", default = 2, type = int)
 	parser.add_argument("--mean", "-mean",  action="store_true")
 	parser.add_argument("--peak", "-peak",  action="store_true")
+	parser.add_argument("--kmeans", "-kmeans",  action="store_true")
 	parser.add_argument("--threshold", "-min", default = 0.0, type = float)
 	parser.add_argument("--type", "-t", default = "raw")
 	args = parser.parse_args()
@@ -148,7 +149,7 @@ if __name__ == '__main__':
 				df = pd. read_pickle (filepath)
 				filename = filepath. split('/')[-1]
 
-				if args.threshold == -1.0:
+				if args.kmeans:
 					discretize_df_kmeans (df, k = args. nbins)
 
 				else:

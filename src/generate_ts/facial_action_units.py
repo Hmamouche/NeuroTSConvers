@@ -20,6 +20,7 @@ if __name__ == '__main__':
 	parser.add_argument("video", help="the path of the video to process.")
 	parser.add_argument("out_dir", help="the path where to store the results.")
 	parser.add_argument("--show",'-s', help="Showing the video.", action="store_true")
+	parser.add_argument("--openface",'-op', help="Showing the video.", default="../../OpenFace")
 
 	args = parser.parse_args()
 
@@ -29,6 +30,9 @@ if __name__ == '__main__':
 
 	if args. out_dir[-1] != '/':
 		args. out_dir += '/'
+
+	if args. openface [-1] != '/':
+		args. openface += '/'
 
 	# Input directory
 	conversation_name = args. video.split ('/')[-1]. split ('.')[0]
@@ -41,8 +45,8 @@ if __name__ == '__main__':
 		if test_df. shape [0] == 50 and csv_df. shape [0] == 1799:
 			print ("Already processed")
 			exit (1)
-	# Run OpenFace binary programm to the video and the given output direcrory
-	os. system ("./../OpenFace/build/bin/FeatureExtraction -q -f %s -out_dir %s" %(args. video, out_file))
+	# Run OpenFace binary program to the video and the given output directory
+	os. system (args. openface + "build/bin/FeatureExtraction -q -f %s -out_dir %s" %(args. video, out_file))
 
 	# read csv file
 	openface_data = pd. read_csv ("%s/%s.csv"%(out_file, conversation_name), sep=',', header=0)

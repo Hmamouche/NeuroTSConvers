@@ -4,7 +4,7 @@ import os
 from src. reduction import rfe_reduction, manual_selection
 from src.prediction.tools import *
 from joblib import Parallel, delayed
-from sklearn.model_selection import StratifiedShuffleSplit
+from sklearn.model_selection import StratifiedShuffleSplit, ShuffleSplit
 
 #============================================================
 
@@ -26,7 +26,7 @@ def feature_selection (subjects, target_column, set_of_behavioral_predictors, co
 		#np.random.shuffle (all_data)
 
 		""" split the data into test and training sets with stratified way """
-		sss = StratifiedShuffleSplit (n_splits = 1, test_size = 0.2, random_state = 5)
+		sss = ShuffleSplit (n_splits = 1, test_size = 0.2, random_state = 5)
 		for train_index, test_index in sss.split (all_data[:, 1:], all_data [:, 0]):
 			train_data = all_data [train_index]
 			test_data = all_data [test_index]
@@ -42,7 +42,8 @@ def feature_selection (subjects, target_column, set_of_behavioral_predictors, co
 
 		else:
 			# Feature selection
-			train_data, test_data, features_indices, score = rfe_reduction (train_data_, test_data_, [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9])
+			#train_data, test_data,
+			features_indices, score = rfe_reduction (train_data_, test_data_, [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9])
 
 			write_line (filename, [target_column, lagged_names, features_indices, score], mode = "a+")
 
@@ -101,4 +102,3 @@ def  select_features (subjects, regions, lag, remove):
 	Parallel (n_jobs = 5) (delayed(process_region) (target_column, hr_convers, subjects, int (lag), filename_hr) for target_column in _regions)
 
 	print ("\n 	DONE ...")
-	

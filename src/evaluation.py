@@ -5,6 +5,24 @@ import argparse
 from glob import glob
 import os
 import matplotlib.ticker as ticker
+from IPython.display import HTML
+
+
+def color_negative_red (value):
+	"""
+	Colors elements in a dateframe
+	green if positive and red if
+	negative. Does not color NaN
+	values.
+	"""
+
+	if value > 0.8:
+		color = 'red'
+
+	else:
+		color = 'black'
+
+	return 'color: %s' % color
 
 #===========================================================#
 
@@ -13,24 +31,24 @@ def nb_to_region (region):
 		if region[i] == "1":
 			region[i] = "FFA"
 		if region[i] == "2":
-			region[i] = "L-motor-cortex"
+			region[i] = "L-MC"
 
 		if region[i] == "3":
-			region[i] = "R-motor-cortex"
+			region[i] = "R-MC"
 		if region[i] == "4":
-			region[i] = "L-sup-tmp-sulcus"
+			region[i] = "L-STS"
 
 		if region[i] == "5":
-			region[i] = "R-sup-tmp-sulcus"
+			region[i] = "R-STS"
 		if region[i] == "6":
-			region[i] = "L-Frontal-Pole"
+			region[i] = "L-FP"
 
 		if region[i] == "7":
-			region[i] = "R-Frontal-Pole"
+			region[i] = "R-FP"
 		if region[i] == "8":
-			region[i] = "L-Ventromedial-PFC"
+			region[i] = "L-VPFC"
 		if region[i] == "9":
-			region[i] = "R-Ventromedial-PFC"
+			region[i] = "R-VPFC"
 
 #===========================================================#
 
@@ -40,16 +58,16 @@ def model_color (model_name):
 	elif "SVM" in model_name:
 		return "darkorange"
 	elif "RIDGE" in model_name:
-		return "green"
+		return "lightcoral"
 	elif "LASSO" in model_name:
 		return "red"
 	elif "RF" in model_name:
 		return "royalblue"
 	elif "SGD" in model_name:
-		return "lightcoral"
+		return "green"
 	elif "LSTM" in model_name:
-		return "black"
-	elif model_name == "random":
+		return "teal"
+	elif model_name in ["random", "baseline"]:
 		return "grey"
 
 #===========================================================#
@@ -78,68 +96,84 @@ def get_model_name (file):
 
 #===========================================================#
 
-def process_multiple_subject (measures):
+def process_multiple_subject (measures_mean, measures_std):
 
 	os. system ("rm results/prediction/*.pdf*")
 	for conv in ["HH", "HR"]:
 
-		evaluation_files = glob ("results/prediction/*%s.csv*"%conv)
+		evaluation_files = glob ("results/prediction/*%s.tsv*"%conv)
 		evaluation_files. sort ()
-		fig, ax = plt.subplots (nrows = len (measures), ncols = 1, figsize=(15,10))
+		fig, axs = plt.subplots (nrows = len (measures_mean), ncols = 1, figsize=(10,4))
 
-		bar_with = 0.03
+		if len (measures_mean) == 1:
+			ax = []
+			ax. append (axs)
+
+		bar_with = 0.008
 		distance = 0
-		local_dist = 0.005
+		local_dist = 0.001
 
 		for file in evaluation_files:
-			data = pd.read_csv (file, sep = ';', header = 0, na_filter = False, index_col=False)
+			data = pd.read_csv (file, sep = '\t', header = 0, na_filter = False, index_col=False)
+			data. sort_values (["region"], inplace = True)
 
 			if data. shape [0] == 0:
 				continue
 
-			'''data = data.loc[data.groupby("Regions")[measures[2]].idxmax(), :]
-			data. sort_index(inplace=True)'''
-
 			regions = data .loc[:,"region"]. tolist ()
-			x_names = [int (region.split ('_')[-1]) +  distance for region in regions]
+			x_names = [int (region.split ('_')[-1]) / 10 +  distance for region in regions]
 			regions_names = [region.split ('_')[-1] for region in regions]
 			nb_to_region (regions_names)
 			distance += bar_with + local_dist
 
-			for i in range (len (measures)):
-				evaluations = get_eval (data, regions, measures[i])
+
+			for i in range (len (measures_mean)):
+				evaluations = get_eval (data, regions, measures_mean [i])
+				errors = get_eval (data, regions, measures_std [i])
 				model_name = get_model_name (file)
 
 				#ax[i]. bar (x_names, evaluations, label = model_name, marker = '.', color = model_color (model_name))
-				ax[i]. bar (x_names, evaluations, label = model_name, width = bar_with, capsize=7, color = model_color (model_name))
-				ax[i]. set_ylabel (measures [i])
+				ax[i]. bar (x_names, evaluations, label = model_name, width = bar_with, capsize=2, color = model_color (model_name), yerr = errors, align='center', alpha=0.9, ecolor='black')
+				ax[i]. set_ylabel (measures_mean [i])
 				ax[i]. set_xlabel ("Regions")
 
-			for i in range (len (measures)):
-				ax[i].xaxis. set_major_locator ((ticker. IndexLocator (base = 1, offset= 2 * bar_with)))
-				ax[i].yaxis. set_major_locator (ticker. MultipleLocator (0.1))
+			for i in range (len (measures_mean)):
+				ax[i].xaxis. set_major_locator ((ticker. IndexLocator (base = 0.1, offset= 2 * bar_with)))
+				ax[i].yaxis. set_major_locator (ticker. MultipleLocator (0.2))
+				ax[i].set_ylim (0, 1)
 				ax[i]. set_xticklabels (regions_names, minor = False)
 				ax[i]. grid (which='major', linestyle=':', linewidth='0.25', color='black')
 
-		plt.legend (loc='upper right', bbox_to_anchor = (1.1, 3.5), fancybox=True, shadow=True, ncol=1)
+		plt.legend (loc='upper center', fancybox=True, shadow=True, ncol=5, fontsize = "x-small", markerscale = 0.2, labelspacing = 0.1, handletextpad=0.2, handlelength=1)
+		#plt.gca().legend (loc='upper center', bbox_to_anchor = (0.5, 1.7), fancybox=True, shadow=True, ncol=5, fontsize = "x-small", markerscale = 0.2, labelspacing = 0.1, handletextpad=0.2, handlelength=1)
+		#plt.legend (loc='upper right', bbox_to_anchor = (0.5, 0.5), ncol=1)
 		plt. savefig ("results/prediction/eval_%s.pdf"%conv)
+		#plt.tight_layout()
 		plt. show ()
 
 #===========================================================#
 
 if __name__=='__main__':
 
-	measures = ["recall", "precision", "fscore"]
+	#measures_mean = ["recall. mean", "precision. mean", "fscore. mean"]
+	#measures_std = ["recall. std", "precision. std", "fscore. std"]
+	measures_mean = ["fscore. mean"]
+	measures_std = ["fscore. std"]
 
 	# Group data by max of fscore to find the best set of predictive variables
 	csv_files = glob ("results/prediction/*.csv*")
 
 	for csv_file in csv_files:
 		data = pd. read_csv (csv_file, sep = ';', header = 0, na_filter = False, index_col=False)
-		data = data.loc [data. groupby ("region") ["fscore"].idxmax (), :]
-		data. sort_index (inplace=True)
-		data.to_csv (csv_file, sep = ';', columns = data.columns, index = False)
+		data = data. loc [data. groupby ("region") ["fscore. mean"]. idxmax (), :]
 
-	process_multiple_subject (measures)
+		data. sort_index (inplace = True)
+		#df = data. loc[:, ["region", "selected_indices", "fscore"]]
+
+		data.to_csv (csv_file. split ('.')[0]+ ".tsv", sep = '\t', index = False)
+		#df.to_html(csv_file. split ('.')[0]+ ".html",  index = False, border=False)
+		#os. system ("rm %s"% csv_file)
+
+	process_multiple_subject (measures_mean, measures_std)
 
 #=============================================================#

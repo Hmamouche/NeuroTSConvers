@@ -202,7 +202,14 @@ if __name__ == '__main__':
 
 	conversation_name = data_dir.split ('/')[-1]
 
+	if conversation_name == "":
+		if args. left:
+			conversation_name = "speech_features_left"
+		else:
+			conversation_name = "speech_features"
+
 	print ("-----------------", conversation_name)
+
 	output_filename_1 = out_dir +  conversation_name + ".png"
 	output_filename_pkl = out_dir +  conversation_name + ".pkl"
 
@@ -306,6 +313,11 @@ if __name__ == '__main__':
 		main_particles_items = ts. get_durations (tier_align, list_of_tokens =  MAIN_PARTICLES_ITEMS)
 		laughters = ts. get_durations (tier_align, list_of_tokens =  LAUGHTER_FORMS)
 
+		'''filled_breaks = ts. get_ratio (tier, list_of_tokens =  FILLED_PAUSE_ITEMS)
+		main_feed_items = ts. get_ratio (tier, list_of_tokens =  MAIN_FEEDBACK_ITEMS)
+		main_discourse_items = ts. get_ratio (tier, list_of_tokens =  MAIN_DISCOURSE_ITEMS)
+		main_particles_items = ts. get_ratio (tier, list_of_tokens =  MAIN_PARTICLES_ITEMS)'''
+
 	except:
 		print ("error in computing intervals")
 
@@ -334,11 +346,12 @@ if __name__ == '__main__':
 				"LexicalRichness1":richess_lex1,
 				"LexicalRichness2":richess_lex2,
  				"Polarity": [x_emotions, polarity],
-				"Subejctivity": [x_emotions, subejctivity],
+				"Subjectivity": [x_emotions, subejctivity],
 				}
 
 	labels = ["Signal", "talk", "IPU", "Overlap", "ReactionTime", "FilledBreaks", "Feedbacks", "Discourses",
-				"Particles", "Laughters", "LexicalRichness1", "LexicalRichness2", "Polarity", "Subejctivity"]
+				"Particles", "Laughters", "LexicalRichness1", "LexicalRichness2", "Polarity", "Subjectivity"]
+
 	markers = ['' for i in range (len (labels))]
 
 	# Align time series for visualisation
@@ -359,9 +372,10 @@ if __name__ == '__main__':
 		else:
 			df [label] = sample_cont_ts (time_series [label], physio_index)
 
-
-	#df.insert (0, "Time (s)", physio_index, allow_duplicates=False)
-
+	if args.left:
+		for i in range (len (labels)):
+			labels [i] += "_left"
+	df. columns = ["Time (s)"] + labels
 	# Output files
 	df.to_pickle(output_filename_pkl)
 	#ts. plot_time_series ([time_series[label] for label in labels], labels, colors[0:len (labels)], markers=markers,figsize=(20,16), figname = output_filename_1)

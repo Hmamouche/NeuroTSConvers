@@ -45,8 +45,9 @@ def process_videos (subject, type = "e"):
 
     print ("\t" + subject, 15*'-', '\n')
     out_dir_emotions = "time_series/" + subject + "/emotions_ts/"
+
     out_dir_landMarks = "time_series/" + subject + "/facial_features_ts/"
-    out_dir_eyetracking = "time_series/" + subject + "/face_ts/"
+    out_dir_eyetracking = "time_series/" + subject + "/eyetracking_ts/"
     out_dir_colors = "time_series/" + subject + "/colors_ts/"
 
     for out_dir in [out_dir_emotions, out_dir_landMarks, out_dir_eyetracking, out_dir_colors]:
@@ -59,7 +60,7 @@ def process_videos (subject, type = "e"):
     for video in videos:
     	try:
     		if type == "eye":
-    			os. system ("python3 src/generate_ts/eyetrackingV1.py " + video + " " + out_dir_eyetracking)
+    			os. system ("python3 src/generate_ts/eyetracking.py " + video + " " + out_dir_eyetracking)
 
     		elif type == 'e':
     			os.system("python3 src/generate_ts/generate_emotions_ts.py " +  video + " " + out_dir_emotions)
@@ -118,7 +119,7 @@ if __name__ == '__main__':
 
     try:
         if args. transcriptions:
-        	Parallel (n_jobs = 6) (delayed(process_transcriptions) (subject, args.left) for subject in subjs)
+        	Parallel (n_jobs = 7) (delayed(process_transcriptions) (subject, args.left) for subject in subjs)
 
         if args. colors:
         	Parallel (n_jobs=6) (delayed(process_videos) (subject, 'c') for subject in subjs)
@@ -128,6 +129,6 @@ if __name__ == '__main__':
         if args. facial:
         	Parallel (n_jobs=3) (delayed(process_videos) (subject, 'f') for subject in subjs)
         if args. eyetracking:
-        	Parallel (n_jobs=6) (delayed(process_videos) (subject, 'eye') for subject in subjs)
+        	Parallel (n_jobs=2) (delayed(process_videos) (subject, 'eye') for subject in subjs)
     except:
     	print ("Error in Parallel loop")

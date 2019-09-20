@@ -27,32 +27,26 @@ def fit_lstm (X, Y, lag, params) :
     nb_epochs = params ['epochs']
     nb_neurons = params ['neurons']
 
-    #X_reshaped = X.reshape(X.shape[0], lag, int (X.shape[1] / lag))
+    look_back = 1
+    X_reshaped = X.reshape (X. shape[0], look_back, int (X.shape[1] / look_back))
 
     model = Sequential()
-    #model.add (LSTM (units = 16, stateful=True,  batch_input_shape = (batch_size, X_reshaped.shape[1], X_reshaped.shape[2]), kernel_initializer='random_uniform'))
+    model.add (LSTM (units = int (X.shape[1] / look_back), stateful=True,  batch_input_shape = (batch_size, X_reshaped.shape[1], X_reshaped.shape[2]), kernel_initializer='random_uniform'))
 
-    nb_neurons = int (float (X.shape [1] + 1) * 0.667)
-    model.add (Dense (nb_neurons, input_shape = (X.shape[1],)))
-    model. add (Activation ("relu"))
-
-    if (nb_neurons / 2) > 2:
-        model.add (Dense (nb_neurons / 2))
-        model. add (Activation ("relu"))
-
-    model.add (Dense (1))
-    model. add (Activation ("sigmoid"))
+    model.add(Dropout(0.2))
+    model.add(Dense(1, activation='sigmoid'))
 
     model.compile (loss = 'binary_crossentropy', optimizer = 'adam', metrics = ['accuracy'])
-
-    model.fit (X, Y,  epochs = 60, batch_size = batch_size, verbose = 0, shuffle = False)
+    model.fit (X_reshaped, Y,  epochs = 30, batch_size = batch_size, verbose = 0, shuffle = False)
 
     return model
 
 
 def lstm_predict (X, model, lag):
-    #X_reshaped = X.reshape(X.shape[0], lag, int (X.shape[1] / lag))
-    preds = model. predict (X, batch_size = 1). reshape (-1)
+
+    look_back = 1
+    X_reshaped = X.reshape(X.shape[0], look_back, int (X.shape[1] / look_back))
+    preds = model. predict (X_reshaped, batch_size = 1). reshape (-1)
     for i in range (len (preds)):
         if preds [i] < 0.5:
             preds [i] = 0

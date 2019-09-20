@@ -39,7 +39,7 @@ global_dict_models = {
 		"SVM": SVC (),
 		"RIDGE": linear_model.Ridge (),
 		"LASSO": linear_model.Lasso (),
-		"random": DummyClassifier (),
+		"baseline": DummyClassifier (),
 		"LREG": linear_model.LogisticRegression (),
 		"ada": AdaBoostClassifier ()
 		}
@@ -54,7 +54,7 @@ def find_peaks_ (y, height = 0):
 
 #===========================================
 
-def discretize (x, height = 0.1):
+def discretize_preds (x, height = 0.1):
 
 	result = [i for i in x]
 	for i in range (len (result)):
@@ -123,7 +123,8 @@ def k_fold_cross_validation (data, model, lag, params, block_size):
 	score = []
 	# split train data into nb_sets blocks
 	splits = [data [i : i + block_size] for i in range (0, len (data), block_size)]
-	rd.shuffle(splits)
+
+	#rd.shuffle(splits)
 
 	# train and validate each time
 	# validate the model on one conversation each time, and train it oh the others
@@ -131,7 +132,9 @@ def k_fold_cross_validation (data, model, lag, params, block_size):
 		# validation data
 		validation_convers  = splits [i]
 		# train data
-		train_convers = np. array ([element for bs in splits [0 : i] +  splits [i+1 : ] for element in bs])
+		train_convers = np. array ([element for bs in splits [0 : i] +  splits [i + 1 : ] for element in bs])
+
+
 		pred_model = train_model (train_convers, model, params, lag)
 		score. append (test_model (validation_convers[:, 1:], validation_convers[:, 0], pred_model, lag, model))
 
@@ -153,7 +156,7 @@ def k_l_fold_cross_validation (data, target_column, model, lag, n_splits, block_
 		models_params = generate_models ({'C': [1, 0.9, 0.8, 0.7], 'solver': ['lbfgs', 'liblinear']})
 
 	elif model == "SVM":
-		models_params = generate_models ({'C': [1, 0.8], 'kernel': ['linear', "sigmoid"]})
+		models_params = generate_models ({'C': [1, 0.8], 'kernel': ['linear', "rbf"]})
 
 	elif model == "LSTM":
 		models_params = generate_models ({'epochs': [20],  'neurons' : [30]})
@@ -170,7 +173,7 @@ def k_l_fold_cross_validation (data, target_column, model, lag, n_splits, block_
 		 'max_features': ['auto'],
 		 'n_estimators': [10, 50, 100, 200, 300]})
 
-	elif model == "random":
+	elif model == "baseline":
 		models_params = generate_models ({'strategy': ['uniform', 'stratified', "most_frequent"], 'random_state': [None]})
 
 	if model in  ["LSTM"]:
@@ -234,10 +237,14 @@ def  test_model (X, Y, model, lag, model_type = "sickit"):
 
 	real = Y
 
-	if type(model).__name__ in ["Ridge", "RIDGE", "Lasso", "LinearRegression"]:
-		pred = discretize (pred)
-		real = discretize (real)
 
+	if type(model).__name__ in ["Ridge", "RIDGE", "Lasso", "LinearRegression"]:
+		pred = discretize_preds (pred)
+		real = discretize_preds (real)
+
+	'''print (real)
+	print (pred)
+	exit (1)'''
 	recall_ 	= recall_score (real, pred, average = 'weighted')
 	precision_ 	= precision_score (real, pred, average = 'weighted')
 	fscore_ 	= f1_score (real, pred, average = 'weighted')

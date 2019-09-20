@@ -7,7 +7,7 @@ import pywt
 
 import pylab as plt
 
-from scipy.stats import mode as sc_mode
+from joblib import Parallel, delayed
 
 #===================================================
 
@@ -92,9 +92,15 @@ def is_R (line):
 #===========================================
 
 def is_event (line):
-    if line [0] in ["EFIX", "SSACC", "SBLINK", "EBLINK", "ESACC", "SFIX"]:
-        return True
-    else: return False
+
+    events = ["MSG", "EFIX", "SFIX", "INPUT", "END", "SSACC", "ESACC", "SBLINK", "EBLINK"]
+    result = False
+    for event  in events:
+        if event in line [0]:
+            result = True
+            break
+
+    return result
 
 #===========================================
 
@@ -132,6 +138,13 @@ def find_saccades (data):
 
     sacc_indices = []
     saccades = find_start_end (data, "SSACC", "ESACC")
+    blinks = find_start_end (data, "SBLINK", "EBLINK")
+
+    # remove saccades that contain blinks
+    '''for sacc in saccades:
+        for blink in blinks:
+            if blink [0] >= sacc[0] and blink [1] <= sacc[1]:
+                saccades. remove (sacc)'''
 
     for sacc in saccades:
         sacc_indices. extend (list (range (sacc [0], sacc[1] + 1)))
@@ -183,72 +196,78 @@ def find_conv (data, message):
 
 #===========================================
 def find_convers (data):
-
     """
         Find the data associated to the 6 conversations, and put
         them into a list of lists. Then removing blinks and saccades.
     """
 
     convers = find_conv (data, "CONV")
+    saccades = [[] for i in range (len (convers))]
+
     conversations = [data [conv [1] : conv [2]] for conv in convers]
 
     for i in range (len (conversations)):
         conv_cleaned = []
         blinks = find_blinks (conversations [i])
-        #saccs = find_saccades (conversations [i])
 
-        all = blinks # + saccs
+        sacc_indices = find_saccades (conversations [i])
+
+        # indices of saccdes
+        all = blinks # + sacc_indices
 
         for j in range (len (conversations [i])):
-            if j not in all and conversations [i][j][0] not in ["MSG", "EFIX", "SFIX", "INPUT", "END", "SSACC", "ESACC"]:
+            if j not in all and conversations [i][j][0] and not is_event (conversations [i][j]):
                 conv_cleaned. append (conversations [i][j])
+
+                if j in sacc_indices:
+                    saccades [i]. append ([1])
+
+                else:
+                    saccades [i]. append ([0])
+
 
         conversations [i] = conv_cleaned. copy ()
 
-    return conversations
+    return conversations, saccades
 
-#==========================================
-def mode_with_nan (list_, mode):
-
-    for row in list_:
-        if mode == "mean":
-            return np.nanmean (list_, axis=0). tolist ()
-        elif mode == "max":
-            return np.nanmax (list_, axis=0). tolist ()
-        elif mode == "mode":
-            return sc_mode (list_, axis=0, nan_policy = 'omit')[0][0]. tolist ()
-
-
-#===========================================
-
-def resample_ts (data, index, mode = "mean"):
-
+# =============================================
+def process_filename (filename):
     """
-        Resampling a time series according to an input index.
-        data : a list of observations, representing the input time series.
-        the data must contain an index in the first column
-        index : the new index (with smaller frequency compared to the data original index)
+        Read an asci file (1 block), detect correct coordinates, detect saccdes and blinks, and store
+        the results in a dataframe, then in a pickle file
     """
+    print (filename)
+    short_file_name = filename. split ('_')[0:2]
+    subject = short_file_name [0]. split ('/')[-1]
 
-    resampled_ts = []
-    rows_ts = []
-    j = 0
+    testBlock = '-'. join (short_file_name [1]. split ('-')[1:3])
 
-    for i in range (len (data)):
-        if j >= len (index):
-            break
+    """ get data from asci files """
+    data, comment = read_asci (filename)
+    convers, saccades = find_convers (data)
 
-        if (data[i][0] > index [j]):
-            resampled_ts. append ([index [j]] + mode_with_nan (rows_ts, mode))
-            initializer = 0
-            j += 1
-            rows_ts = []
-        rows_ts. append (data [i][1:])
+    """ Extract conversations from concatenated data,
+        and initialize the begining time of each conversations at 0 """
 
-    if len (rows_ts) > 0 and j < len (index):
-        resampled_ts. append ([index [j]] + mode_with_nan (rows_ts, mode))
+    for i in range (0, len (convers)):
+        if len (convers [i]) == 0:
+            continue
 
-    return resampled_ts
+        begin = int (convers[i][0][0])
+        for j in range (len (convers[i])):
+            convers[i][j][0] = (int (convers[i][j][0]) - begin) / 1000
+            for k in range (1,4):
+                convers[i][j][k] = float (convers[i][j][k])
+
+        if i % 2 == 0:
+            conv = "CONV1_%03d"%(i+1)
+        else:
+            conv = "CONV2_%03d"%(i+1)
+
+
+        eyetracking_data = np. concatenate ( (np.array (convers [i]) [:,0:3], saccades [i]), axis = 1)
+        eyetracking_data = pd. DataFrame (eyetracking_data, columns = ["Time (s)", "x", "y", "saccades"])
+        eyetracking_data. to_pickle ("time_series/%s/gaze_coordinates_ts/%s_%s.pkl"%(subject, testBlock, conv))
 
 #==============================================
 
@@ -258,7 +277,6 @@ if __name__ == '__main__':
     parser.add_argument("--process", "-p", help = "generate asci files from edf files.", action = "store_true")
     args = parser.parse_args()
 
-    #====================================#
     if args. process:
         edf_files = glob ("data/edt/*.edf*")
 
@@ -268,8 +286,6 @@ if __name__ == '__main__':
     asci_files = glob ("data/edt/*.asc*")
     asci_files. sort ()
 
-    #====================================#
-
     subjects = []
     for i in range(1, 26):
         if i < 10:
@@ -278,106 +294,7 @@ if __name__ == '__main__':
             subjects.append("sub-%s" % str(i))
 
     for subject in subjects:
-        if not os.path.exists("time_series/%s/eyetracking_ts" % subject):
-            os.makedirs("time_series/%s/eyetracking_ts" % subject)
+        if not os.path.exists("time_series/%s/gaze_coordinates_ts" % subject):
+            os.makedirs("time_series/%s/gaze_coordinates_ts" % subject)
 
-        if not os.path.exists("time_series/%s/eyes_gradient_ts" % subject):
-            os.makedirs("time_series/%s/eyes_gradient_ts" % subject)
-
-    #======================================#
-
-    colnames = ["Time (s)", "x", "y"]
-
-    """ Construct the index: 50 observations in physiological data """
-    index = [0.6025]
-    for i in range (1, 50):
-        index. append (1.205 + index [i - 1])
-
-    """ 1/30: image frequency of videos, equivalent to 1799 images per minute """
-    long_index = [1.0 / 30.0 ]
-    for i in range (1, 1799):
-        long_index. append (1.0 / 30.0 + long_index [i - 1])
-
-    """ process all sci files """
-    for filename in asci_files:
-        print (filename)
-
-        short_file_name = filename. split ('_')[0:2]
-        subject = short_file_name [0]. split ('/')[-1]
-
-        if subject in ["sub-12", "sub-19", "sub-14"]:
-            continue
-
-        testBlock = '-'. join (short_file_name [1]. split ('-')[1:3])
-
-        """ get data from asci files """
-        data, comment = read_asci (filename)
-        convers = find_convers (data)
-
-        """ Extract conversations from concatenated data,
-            and initialize the begining time of each conversations at 0 """
-
-        for i in range (0, len (convers)):
-
-            if len (convers [i]) == 0:
-                continue
-
-            begin = int (convers[i][0][0])
-            for j in range (len (convers[i])):
-                convers[i][j][0] = (int (convers[i][j][0]) - begin) / 1000
-                for k in range (1,4):
-                    convers[i][j][k] = float (convers[i][j][k])
-
-            if i % 2 == 0:
-                conv = "CONV1_%03d"%(i+1)
-            else:
-                conv = "CONV2_%03d"%(i+1)
-
-            if os.path.exists ("time_series/%s/eyetracking_ts/%s_%s.pkl"%(subject, testBlock, conv)) and os.path.exists ("time_series/%s/eyes_gradient_ts/%s_%s.pkl"%(subject, testBlock, conv)):
-                continue
-
-            """ the gradient of the eye mouvement """
-            fx = np.array (convers [i]) [:,1:3]. astype (float)
-            x  = np.array (convers [i]) [:,0]. astype (float)
-            gradient = np. gradient (fx, x, axis = 0)
-            gradient = np. concatenate ((np. reshape (x, (-1, 1)), gradient), axis = 1)
-            gradient = to_df (resample_ts (gradient, index, mode = "mean"))
-            gradient. columns = ["Time (s)", "Vx", "Vy"]
-
-
-            """ Resampling data according to the videos frequency """
-            long_data = resample_ts (np.array (convers [i]) [:,0:3]. astype (float), long_index, mode = "mean")
-
-
-            """ long df for eye tracking synchronization """
-            long_df = pd.DataFrame (long_data, columns = colnames)
-
-            #print (long_df)
-
-
-            #for col in long_df.columns:
-                #df[col]. fillna (df[col].mean(), inplace=True)
-
-            # Filter the  signal
-            '''s = long_df [["x"]]. values
-            t = long_df ["Time (s)"]. values
-            print (s)
-            filtered = denoise_signal (s, level = 1)
-
-            # Plot results
-            fig, ax = plt.subplots (2,1,figsize=(10,6))
-            ax[0].plot(t, s, 'r', label = 'original')
-            ax[1].plot(t, filtered, 'g', label = 'filtered')
-
-            plt.xlabel("Time [s]")
-
-            fig. legend ()
-            plt.tight_layout()
-            plt.show()
-
-            exit (1)'''
-
-
-            #df. to_pickle ("time_series/%s/eye_ts/%s_%s.pkl"%(subject, testBlock, conv))
-            long_df. to_pickle ("time_series/%s/eyetracking_ts/%s_%s.pkl"%(subject, testBlock, conv))
-            gradient. to_pickle ("time_series/%s/eyes_gradient_ts/%s_%s.pkl"%(subject, testBlock, conv))
+    Parallel (n_jobs=4) (delayed (process_filename) (filename) for filename in asci_files)
