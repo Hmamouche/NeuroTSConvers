@@ -78,7 +78,8 @@ def process_videos (subject, type = "e"):
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("subject", help="the subject name (for example sub-01), 'all' (default) to process all the subjects.", default="all")
+    #parser.add_argument("subject", help="the subject name (for example sub-01), 'all' (default) to process all the subjects.", default="all")
+    parser. add_argument ('--subjects', '-s', nargs = '+', type=int)
     parser.add_argument("--transcriptions","-t",  help="Process transcriptions.", action="store_true")
     parser.add_argument("--emotions", "-e", help="Process emotions.", action="store_true")
     parser.add_argument("--colors", "-c", help="Images colors.", action="store_true")
@@ -87,48 +88,27 @@ if __name__ == '__main__':
     parser.add_argument("--left", "-le", help="Process participant speech.", action="store_true")
 
     args = parser.parse_args()
-    print (args)
 
-    _arg = args.subject
-
-    subjects = []
-    subjs = []
+    subjects = subjects = ["sub-%02d"%i for i in args.subjects]
 
     if not os. path. exists ("time_series"):
     	os. makedirs ("time_series")
 
-    for i in range (1, 26):
-    	if i < 10:
-    		subjects. append ("sub-0%s"%str(i))
-    	else:
-    		subjects. append ("sub-%s"%str(i))
 
-    # Process all subjets or one of them depending the input argument
-    if _arg == 'ALL' or _arg == 'all':
-    	subjs = subjects
-    	subjs.remove ('sub-12')
-    	subjs.remove ('sub-19')
+    nax_cores = multiprocessing.cpu_count() - 1
 
-    elif _arg in subjects:
-    	subjs = [_arg]
-    else:
-    	usage ()
-    	exit (1)
+    #try:
+    if args. transcriptions:
+    	Parallel (n_jobs = 5) (delayed(process_transcriptions) (subject, args.left) for subject in subjects)
 
-    num_cores = multiprocessing.cpu_count()
+    if args. colors:
+    	Parallel (n_jobs=6) (delayed(process_videos) (subject, 'c') for subject in subjects)
 
-    try:
-        if args. transcriptions:
-        	Parallel (n_jobs = 7) (delayed(process_transcriptions) (subject, args.left) for subject in subjs)
-
-        if args. colors:
-        	Parallel (n_jobs=6) (delayed(process_videos) (subject, 'c') for subject in subjs)
-
-        if args. emotions:
-        	Parallel (n_jobs=1) (delayed(process_videos) (subject, 'e') for subject in subjs)
-        if args. facial:
-        	Parallel (n_jobs=3) (delayed(process_videos) (subject, 'f') for subject in subjs)
-        if args. eyetracking:
-        	Parallel (n_jobs=2) (delayed(process_videos) (subject, 'eye') for subject in subjs)
-    except:
-    	print ("Error in Parallel loop")
+    if args. emotions:
+    	Parallel (n_jobs=1) (delayed(process_videos) (subject, 'e') for subject in subjects)
+    if args. facial:
+    	Parallel (n_jobs=3) (delayed(process_videos) (subject, 'f') for subject in subjects)
+    if args. eyetracking:
+    	Parallel (n_jobs=2) (delayed(process_videos) (subject, 'eye') for subject in subjects)
+    #except:
+    	#print ("Error in Parallel loop")

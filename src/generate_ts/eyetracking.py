@@ -1,18 +1,20 @@
 # coding: utf8
-
+import sys
+import os
+import numpy as np
+import pandas as pd
 from imutils import face_utils
 import matplotlib. pyplot as plt
 import cv2
 import dlib
-import sys
-import os
-
-import numpy as np
-import pandas as pd
 from scipy.stats import mode as sc_mode
-
 import argparse
+
 import utils.tools as ts
+
+sys.path.append (".")
+print (sys. path)
+from src.resampling import regroupe_data, resample_ts
 
 #===========================================================
 
@@ -99,46 +101,7 @@ def plot_landMarks (image, shape):
 		l = l + 1
 
 
-#==========================================
-def regroupe_data (list_, mode):
 
-    for row in list_:
-        if mode == "mean":
-            return np.nanmean (list_, axis=0). tolist ()
-        elif mode == "max":
-            return np.nanmax (list_, axis=0). tolist ()
-        elif mode == "mode":
-            return sc_mode (list_, axis=0, nan_policy = 'omit')[0][0]. tolist ()
-
-#=============================================================
-def resample_ts (data, index, mode = "mean"):
-
-    """
-        Resampling a time series according to an input index.
-        data : a list of observations, representing the input time series.
-        the data must contain an index in the first column
-        index : the new index (with smaller frequency compared to the data original index)
-    """
-
-    resampled_ts = []
-    rows_ts = []
-    j = 0
-
-    for i in range (len (data)):
-        if j >= len (index):
-            break
-
-        if (data[i][0] > index [j]):
-            resampled_ts. append ([index [j]] + regroupe_data (rows_ts, mode))
-            initializer = 0
-            j += 1
-            rows_ts = []
-        rows_ts. append (data [i][1:])
-
-    if len (rows_ts) > 0 and j < len (index):
-        resampled_ts. append ([index [j]] + regroupe_data (rows_ts, mode))
-
-    return np. array (resampled_ts)
 
 #==================================================
 
@@ -203,18 +166,20 @@ if __name__ == '__main__':
 		eye_tracking_file = "time_series/%s/gaze_coordinates_ts/%s.pkl"%(subject, conversation_name)
 		openface_file = "time_series/%s/facial_features_ts/%s/%s.csv"%(subject, conversation_name, conversation_name)
 
-	eye_tracking_data = pd. read_pickle (eye_tracking_file). values. astype (float)
+	eye_tracking_data = pd. read_pickle (eye_tracking_file) #. values. astype (float)
+	#saccades = pd. read_pickle (eye_tracking_file) ["saccades"]. values. astype (float)
+	saccades = eye_tracking_data . loc [:, ["Time (s)","saccades"]]. values. astype (float)
+	eye_tracking_data = eye_tracking_data . loc [:, ["Time (s)", "x", "y"]]. values. astype (float)
+
 	openface_data = pd. read_csv (openface_file, sep = ',', header = 0)
 
 	""" 1/30: image frequency of videos, equivalent to 1799 images per minute """
 	video_index = [1.0 / 30.0 ]
 	for i in range (1, 1799):
 	    video_index. append (1.0 / 30.0 + video_index [i - 1])
+
 	""" resample gaze coordinates to the video frequency """
 	gaze_coordiantes = resample_ts (eye_tracking_data, video_index, mode = "mean")
-
-
-
 
 	cols = [" timestamp", " success"]
 	for i in range (68):
@@ -284,7 +249,8 @@ if __name__ == '__main__':
 
 		face_time_series. append (row)
 
-		#cv2.imshow('wind', bgr_image)
+		if args. show:
+			cv2.imshow('wind', bgr_image)
 		#out.write(bgr_image)
 
 		if cv2.waitKey(30) & 0xFF == ord('q'):
@@ -297,12 +263,13 @@ if __name__ == '__main__':
 
 	#exit (1)
 	""" compute the index of the index BOLD signal frequency """
-	physio_index = [0.6025]
+	physio_index = [0.6]
 	for i in range (1, 50):
 		physio_index. append (1.205 + physio_index [i - 1])
 
 	""" resample data according the BOLD signal frequency """
 	# resample the gaze coordiante
+	saccades = resample_ts (saccades, physio_index, mode = "binary")[:, 1:]
 	coordinates_resampled = resample_ts (eye_tracking_data, physio_index, mode = "mean")
 
 	#compute and resample the gradient of the gaze coordinates
@@ -311,9 +278,8 @@ if __name__ == '__main__':
 	coordinates_gradient = resample_ts (coordinates_gradient, physio_index, mode = "mean")[:, 1:]
 
 	# resample face-time-series
-	face_time_series = resample_ts (face_time_series, physio_index)[:, 1:]
+	face_time_series = resample_ts (face_time_series, physio_index, mode = "binary")[:, 1:]
 
 	""" Concatenate all columns in one dataframe """
-	output_time_series = pd.DataFrame (np. concatenate ((coordinates_resampled, coordinates_gradient, face_time_series), axis = 1), columns = ["Time (s)", "x", "y", "saccades", "Vx", "Vy", "Face", "Mouth", "Eyes"])
-
+	output_time_series = pd.DataFrame (np. concatenate ((coordinates_resampled, coordinates_gradient, saccades, face_time_series), axis = 1), columns = ["Time (s)", "x", "y", "Vx", "Vy", "saccades", "Face", "Mouth", "Eyes"])
 	output_time_series.to_pickle (out_file + ".pkl")

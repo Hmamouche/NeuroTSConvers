@@ -1,13 +1,14 @@
 # coding: utf8
-
-import numpy as np
-import pandas as pd
-import seaborn
-
 import sys
 import os
-
+import numpy as np
+import pandas as pd
+#import seaborn
 import argparse
+
+sys.path.append (".")
+print (sys. path)
+from src.resampling import regroupe_data, resample_ts
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
@@ -62,47 +63,18 @@ if __name__ == '__main__':
 	action_units = openface_data .loc [:, action_units_cols]
 	actions_unis_existence = openface_data. loc [:, action_units_existence_cols]
 
-	#action_units = action_units. multiply (actions_unis_existence)
-
 	data = pd.concat ([head_movement, actions_unis_existence, action_units, land_marks], axis=1). values
-
 	# eliminate space from colnames
-	cols = ["Time (s)"] + movements_cols + action_units_existence_cols + action_units_cols + land_marks_cols
-
-	aggregated_time_series = []
-
-	begin_time = data [0,0]
-	begin_index = 0
-	discretized_time = 0
-	rows_ts = []
+	cols = ["Time (s)"] + movements_cols[1:] + action_units_existence_cols + action_units_cols + land_marks_cols
 
 	# Construct the index: 50 observations in physiological data
 	index = [0.6025]
 	for i in range (1, 50):
 		index. append (1.205 + index [i - 1])
 
-	j = 0
-	for i in range (data. shape [0]):
-		if j >= 50:
-			break
-		if (data[i,0] > index [j]):
-			aggregated_time_series. append ([index [j]] + np.nanmax (rows_ts[1:], axis=0). tolist ())
-			discretized_time += 1.205
-			initializer = 0
-			begin_time = data[i,0]
-			begin_index = i
-			rows_ts = []
-			j+= 1
-
-		rows_ts. append (data [i,:])
-
-	if len (rows_ts) > 0 and j < 50:
-		aggregated_time_series. append ([index [j]]+ np.amax (rows_ts[1:], axis=0). tolist ())
-
-	aggregated_time_series = pd.DataFrame (aggregated_time_series)
-	aggregated_time_series. columns = cols
-	aggregated_time_series. to_pickle ("%s.pkl"%out_file)
-
+	# Resampling : todo resampling each category independently
+	resampled_time_series = pd.DataFrame (resample_ts (data, index, mode = "mean"), columns = cols)
+	resampled_time_series. to_pickle ("%s.pkl"%out_file)
 
 	os. system (" rm -r %s/*aligned" %(out_file))
 	os. system (" rm %s/*.avi* " %(out_file))

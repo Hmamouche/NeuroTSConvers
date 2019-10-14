@@ -1,6 +1,6 @@
 # coding: utf8
 
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
@@ -15,6 +15,8 @@ import sys
 import glob
 import os
 import argparse
+
+from utils.vad import VoiceActivityDetector
 
 sys.path.insert(0,'src/utils/SPPAS')
 
@@ -41,10 +43,21 @@ MAIN_PARTICLES_ITEMS = [u"quoi",u"hein",u"bon",u'mais',u'ben',u'beh',u'enfin',u'
 
 colors = ["black", "darkblue", "brown", "red", "slategrey", "darkorange", "grey","blue", "indigo", "darkgreen"]
 
-#-----------------------------------------------------------------------------
-def usage():
-	print ("execute the script with -h for usage.")
 
+def detect_speech_activity (wav_filename):
+
+	v = VoiceActivityDetector (wav_filename)
+	raw_detection = v.detect_speech()
+	speech_labels = v.convert_windows_to_readible_labels(raw_detection)
+
+	intervals = []
+
+	for item in speech_labels:
+		# Interpausal units 200 ms min
+		#if (item["speech_end"] - item["speech_begin"] >= 0.2):
+		intervals. append ([item["speech_begin"], item["speech_end"]])
+
+	return (intervals)
 #-----------------------------------------------------------------------------
 
 def get_intervals (ts):
@@ -73,6 +86,7 @@ def sample_cont_ts (ts, axis, mode = 'sum'):
 	set_of_points = [[] for x in range (len (axis))]
 	y = [0 for x in range (len (axis))]
 
+
 	for i in range (len (ts[0])):
 		for j in range (0, len (axis)):
 			if j == 0:
@@ -89,19 +103,27 @@ def sample_cont_ts (ts, axis, mode = 'sum'):
 			if len (set_of_points[j]) > 0:
 				y[j] = np.mean (set_of_points[j])
 
-	if mode == 'max':
+	elif mode == 'max':
 		for j in range (0, len (y)):
 			if len (set_of_points[j]) > 0:
 				y[j] = np.max (set_of_points[j])
 
-	if mode == 'sum':
+	elif mode == 'sum':
 		for j in range (0, len (y)):
 			if len (set_of_points[j]) > 0:
 				y[j] = np.sum (set_of_points[j])
 
+	elif mode == 'binary':
+		for j in range (0, len (y)):
+			if sum (set_of_points[j]) > 0:
+				y[j] = 1
+			else:
+				y [j] = 0
+
 	return y
 
-#---------- intersection between two intervals
+#================================================================
+""" intersection between two intervals """
 def get_intersection (A, B):
 
 	overlap = [0, 0]
@@ -110,44 +132,14 @@ def get_intersection (A, B):
 	else:
 		overlap = [max (A[0], B[0]), min (A[1], B[1])]
 	return overlap
-#-----------------------------------------------------------------
+
+#================================================================
 # quantize time series
 # step : the step between two observarions
 # nb_obs : the number of observations
 # axis : discrete vector
-def sample_square_ts (ts, axis):
 
-	axis_intervals = []
-	for i in range (len (axis)):
-		if i == 0:
-			axis_intervals. append ([i, [0, axis[i]]])
-		else:
-			axis_intervals. append ([i, [axis[i-1], axis[i]]])
-
-
-
-	y = [0 for i in range (len (axis))]
-
-
-	# Transform the time series into a set of intervals
-	intervals = get_intervals (ts)
-
-	# We have tow cases: the interval is larger or smaller than the discretized step (1.205s)
-	if len (intervals) == 0:
-		return y
-
-	for inter_ax in axis_intervals:
-		step = inter_ax[1][1] - inter_ax[1][0]
-		for interval in intervals:
-			overlap = get_intersection (inter_ax [1], interval)
-
-			if len (overlap) > 0:
-				y [inter_ax [0]] += (overlap [1] - overlap [0]) / step
-
-	return y
-
-#========================================================
-def new_sample_square (ts, axis):
+def sample_square (ts, axis):
 	axis_intervals = []
 	for i in range (len (axis)):
 		if i == 0:
@@ -174,7 +166,7 @@ def new_sample_square (ts, axis):
 
 	return y
 
-#-------------------------------------------------------#
+#================================================================
 if __name__ == '__main__':
 
 	parser = argparse.ArgumentParser()
@@ -213,12 +205,16 @@ if __name__ == '__main__':
 	output_filename_1 = out_dir +  conversation_name + ".png"
 	output_filename_pkl = out_dir +  conversation_name + ".pkl"
 
-	#print ("Processing %s" %data_dir.split ('/')[-1])
 
-	#if os.path.isfile (output_filename_1)  and os.path.isfile (output_filename_pkl):
-	if os.path.isfile (output_filename_pkl):
+	# Index variable
+	physio_index = [0.6025]
+	for i in range (1, 50):
+		physio_index. append (1.205 + physio_index [i - 1])
+
+	""" exit if conversation already processed """
+	'''if os.path.isfile (output_filename_pkl):
 		print ("Conversation already processed")
-		exit (1)
+		exit (1)'''
 
 	# Read audio, and transcription file
 	for file in glob.glob(data_dir + "/*"):
@@ -237,17 +233,21 @@ if __name__ == '__main__':
 			if args.left:
 				if "left-reduc.wav" in file:
 					rate, signal = wav.read (file)
+					speech_activity = detect_speech_activity (file)
 			else:
 				if "right-filter.wav" in file:
 					rate, signal = wav.read (file)
+					speech_activity = detect_speech_activity (file)
 
+	'''print (speech_activity)
+	exit (1)'''
 	analytic_signal = hilbert(signal)
 	envelope = np. abs (analytic_signal). tolist ()
-	step =  1.0 / rate
+	step_signal =  1.0 / rate
 
 	signal_x = [0.0]
 	for i in range (1, len (signal)):
-		signal_x. append (step + signal_x[i-1])
+		signal_x. append (step_signal + signal_x[i-1])
 
 	# Select language
 	nlp = sp.load('fr_core_news_sm')
@@ -266,28 +266,23 @@ if __name__ == '__main__':
 	if  tier_right is None:
 		tier_right = parser.read(). find ("IPUs")
 
-
-
 	if args.left:
 		tier = tier_left
 	else:
 		tier = tier_right
 
-	# Silence
-	# Index variable
-	physio_index = [0.6025]
-	#physio_index = [0]
-	for i in range (1, 50):
-		physio_index. append (1.205 + physio_index [i - 1])
+	IPU, _ = ts. get_ipu (tier, 1)
+	talk = ts. get_discretized_ipu (IPU, physio_index, 1)
+	discretized_ipu = sample_square (IPU, physio_index)
 
-	#silence = ts. get_silence (tier, physio_index, 1)
-	#IPU = ts. get_ipu (tier, 1)
-	#print (IPU)
-	IPU, _ = ts. new_get_ipu (tier, 1)
-	talk = physio_index, ts. get_dicretized_ipu (tier, physio_index, 1)
+	for i in range (len (discretized_ipu)):
+		if discretized_ipu [i] < 0.2:
+			discretized_ipu [i] = 0
+		else:
+			discretized_ipu [i] = 1
 
 	# Overlap
-	overlap = ts. get_overlap_new (tier_left, tier_right)
+	overlap = ts. get_overlap (tier_left, tier_right)
 
 	# recation time
 	reaction_time = ts. get_reaction_time (tier_left, tier_right)
@@ -297,45 +292,34 @@ if __name__ == '__main__':
 
 	# Time of Filled breaks, feed_backs
 	# aligment
-	try:
-		if args.left:
-			parser = spp.sppasRW (transcription_left_palign)
-			tier_left_palign = parser.read(). find ("TokensAlign")
-			tier_align = tier_left_palign
-		else:
-			parser = spp.sppasRW (transcription_right_palign)
-			tier_right_palign = parser.read(). find ("TokensAlign")
-			tier_align = tier_right_palign
-		# Time of Filled breaks, feed_backs
-		filled_breaks = ts. get_durations (tier_align, list_of_tokens =  FILLED_PAUSE_ITEMS)
-		main_feed_items = ts. get_durations (tier_align, list_of_tokens =  MAIN_FEEDBACK_ITEMS)
-		main_discourse_items = ts. get_durations (tier_align, list_of_tokens =  MAIN_DISCOURSE_ITEMS)
-		main_particles_items = ts. get_durations (tier_align, list_of_tokens =  MAIN_PARTICLES_ITEMS)
-		laughters = ts. get_durations (tier_align, list_of_tokens =  LAUGHTER_FORMS)
+	if args.left:
+		parser = spp.sppasRW (transcription_left_palign)
+		tier_align = parser.read(). find ("TokensAlign")
 
-		'''filled_breaks = ts. get_ratio (tier, list_of_tokens =  FILLED_PAUSE_ITEMS)
-		main_feed_items = ts. get_ratio (tier, list_of_tokens =  MAIN_FEEDBACK_ITEMS)
-		main_discourse_items = ts. get_ratio (tier, list_of_tokens =  MAIN_DISCOURSE_ITEMS)
-		main_particles_items = ts. get_ratio (tier, list_of_tokens =  MAIN_PARTICLES_ITEMS)'''
+	else:
+		parser = spp.sppasRW (transcription_right_palign)
+		tier_align = parser. read(). find ("TokensAlign")
 
-	except:
-		print ("error in computing intervals")
+	# Time of Filled breaks, feed_backs
+	filled_breaks = ts. get_durations (tier_align, list_of_tokens =  FILLED_PAUSE_ITEMS)
+	main_feed_items = ts. get_durations (tier_align, list_of_tokens =  MAIN_FEEDBACK_ITEMS)
+	main_discourse_items = ts. get_durations (tier_align, list_of_tokens =  MAIN_DISCOURSE_ITEMS)
+	laughters = ts. get_durations (tier_align, list_of_tokens =  LAUGHTER_FORMS)
 
 
-	# Ratios of Filled breaks, feed_backs
-	'''filled_breaks = ts. get_ratio (tier, list_of_tokens =  FILLED_PAUSE_ITEMS)
-	main_feed_items = ts. get_ratio (tier, list_of_tokens =  MAIN_FEEDBACK_ITEMS)
-	main_discourse_items = ts. get_ratio (tier, list_of_tokens =  MAIN_DISCOURSE_ITEMS)
-	main_particles_items = ts. get_ratio (tier, list_of_tokens =  MAIN_PARTICLES_ITEMS)'''
+	""" handle particle items separately as continuous time series """
+	main_particles_items = ts. get_particle_items (tier, nlp, list_of_tokens =  MAIN_PARTICLES_ITEMS)
+
 
 	x_emotions, polarity, subejctivity = ts. emotion_ts_from_text (tier, nlp)
 
 	# Time series dictionary
-	#time_series = {"Signal": [signal_x, envelope],
 	time_series = {
 				"Signal": [signal_x, envelope],
+				"SpeechActivity": speech_activity,
 				"talk": talk,
 				"IPU": IPU,
+				"disc_IPU": discretized_ipu,
 				"Overlap": overlap,
 				"ReactionTime":reaction_time,
 				"FilledBreaks":filled_breaks,
@@ -349,28 +333,31 @@ if __name__ == '__main__':
 				"Subjectivity": [x_emotions, subejctivity],
 				}
 
-	labels = ["Signal", "talk", "IPU", "Overlap", "ReactionTime", "FilledBreaks", "Feedbacks", "Discourses",
+	#labels = list (time_series. keys ())
+	labels = ["Signal", "SpeechActivity", "talk", "IPU", "disc_IPU", "Overlap", "ReactionTime", "FilledBreaks", "Feedbacks", "Discourses",
 				"Particles", "Laughters", "LexicalRichness1", "LexicalRichness2", "Polarity", "Subjectivity"]
 
-	markers = ['' for i in range (len (labels))]
+	markers = ['.' for i in range (len (labels))]
 
-	# Align time series for visualisation
-	#for label in labels[1:]:
-		#time_series[label] = ts. align_ts (time_series[label], [0, 60])
-	#exit (1)
-	## test sampling
-	df = pd.DataFrame ()
+
+	df = pd.DataFrame (index = physio_index)
 
 	# Conbstruct a dataframe with smapled time serie according to the physio index
 	df["Time (s)"] = physio_index
 	#df ["Silence"] = silence
 	for label in labels [:]:
-		if label in ["talk"]:
-			df [label] = talk [1]
-		elif (label in ["IPU", "Overlap", "FilledBreaks", "Laughters", "Feedbacks", "Discourses","Particles"]):
-			df [label] = new_sample_square (time_series [label], physio_index)
+		if label in ["talk", "disc_IPU"]:
+			df [label] = time_series [label]
+		elif (label in ["IPU", "SpeechActivity", "Overlap", "FilledBreaks", "Laughters", "Feedbacks", "Discourses"]):
+			df [label] = sample_square (time_series [label], physio_index)
+		elif label == "Particles":
+			df [label] = sample_cont_ts (time_series [label], physio_index, mode = "binary")
 		else:
-			df [label] = sample_cont_ts (time_series [label], physio_index)
+			if label == "Signal":
+				df [label] = ts. normalize (sample_cont_ts (time_series [label], physio_index))
+
+			else:
+				df [label] = sample_cont_ts (time_series [label], physio_index)
 
 	if args.left:
 		for i in range (len (labels)):
@@ -378,4 +365,6 @@ if __name__ == '__main__':
 	df. columns = ["Time (s)"] + labels
 	# Output files
 	df.to_pickle(output_filename_pkl)
+
+	ts. plot_df (df, labels, output_filename_1, figsize=(12,9), y_lim = [0,1.2])
 	#ts. plot_time_series ([time_series[label] for label in labels], labels, colors[0:len (labels)], markers=markers,figsize=(20,16), figname = output_filename_1)

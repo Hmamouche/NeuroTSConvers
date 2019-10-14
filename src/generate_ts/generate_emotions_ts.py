@@ -17,7 +17,7 @@ from keras.models import load_model
 sys.stderr = stderr
 
 from utils.face_classification.src.utils.datasets import get_labels
-#from utils.face_classification.src.utils.inference import draw_text
+from utils.face_classification.src.utils.inference import draw_text
 #from utils.face_classification.src.utils.inference import draw_bounding_box
 from utils.face_classification.src.utils.inference import apply_offsets
 from utils.face_classification.src.utils.preprocessor import preprocess_input
@@ -161,9 +161,9 @@ if __name__ == '__main__':
 			#print ([index [j]] + [set_of_emotions[emotion] for emotion in labels])
 			j += 1
 
-		#if args. show:
-		#draw_bounding_box(face, rgb_image, color)
-		'''cv2.circle(rgb_image, (int (eye_tracking_data[nb_frames, 1]), int (eye_tracking_data[nb_frames, 2])), 30, (0,0,255), -1)
+		if args. show:
+			draw_bounding_box(face, rgb_image, color)
+			cv2.circle(rgb_image, (int (eye_tracking_data[nb_frames, 1]), int (eye_tracking_data[nb_frames, 2])), 30, (0,0,255), -1)
 
 		if emotion_text == 'angry':
 			color = emotion_probability * np.asarray((255, 0, 0))
@@ -179,13 +179,13 @@ if __name__ == '__main__':
 		color = color.astype(int)
 		color = color.tolist()
 
-		#draw_text(face, rgb_image, emotion_text, color, 0, -45, 1, 1)
+		draw_text(face, rgb_image, emotion_text, color, 0, -45, 1, 1)
 
 		bgr_image = cv2.cvtColor(rgb_image, cv2.COLOR_RGB2BGR)
-		cv2.imshow('window_frame', bgr_image)'''
+		cv2.imshow('window_frame', bgr_image)
 
-		#if cv2.waitKey(1) & 0xFF == ord('q'):
-			#break
+		if cv2.waitKey(30) & 0xFF == ord('q'):
+			break
 
 		#nb_frames += 1
 
@@ -193,9 +193,9 @@ if __name__ == '__main__':
 	if j < 50:
 		time_series. append ([index[j]] + [set_of_emotions[emotion] for emotion in labels])
 
-	df = pd.DataFrame (time_series, columns = columns)
+	#df = pd.DataFrame (time_series, columns = columns)
 	#print (df)
 	#exit (1)
-	df. to_pickle (out_file + '.pkl')
+	#df. to_pickle (out_file + '.pkl')
 	#seaborn. catplot (x = "Time (s)", y = "Emotions", data = df)
-	ts. plot_df (df, labels, figname= out_file + '.png', figsize=(12,9), y_lim = [0,1])
+	#ts. plot_df (df, labels, figname= out_file + '.png', figsize=(12,9), y_lim = [0,1])

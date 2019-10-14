@@ -79,18 +79,17 @@ def train_model_area (subjects, target_column, convers, lag):
 		if (pred_data. shape [0] == 0):
 			continue
 
-		pred_results = pred_data. loc [pred_data ["fscore"]. idxmax()]
-		score =  pred_results ["fscore"]
+		pred_results = pred_data. loc [pred_data ["fscore. mean"]. idxmax()]
+		score =  pred_results ["fscore. mean"]
 
 		if score > best_score:
 			best_score = score
 			best_model = model_name
 			best_results = pred_results
 
-
-	#selected_features =  best_results ["selected_predictors"]
+	#selected_features =  best_results ["selected_indices"]
 	selected_indices  = literal_eval (best_results ["selected_indices"])
-	best_behavioral_predictors = literal_eval (best_results ["predictors"]. replace("'", '"'))
+	best_behavioral_predictors = literal_eval (best_results ["predictor_dict"])
 	best_model_params = literal_eval (best_results ["models_params"]. replace("'", '"'))
 
 
@@ -98,10 +97,14 @@ def train_model_area (subjects, target_column, convers, lag):
 	train_data = concat_ (subjects[0], target_column, convers, lag, best_behavioral_predictors, False)
 	for subject in subjects[1:]:
 		subject_data = concat_ (subject, target_column, convers, lag, best_behavioral_predictors, False)
-		train_data = np.concatenate ((train_data, subject_data), axis = 0)
+		#train_data = np.concatenate ((train_data, subject_data), axis = 0)
+		train_data = np. concatenate ((train_data, subject_data), axis = 0)
+
+		np. random. shuffle (train_data)
+
 
 	# feature selection using the founded indices
-	train_data = train_data [:, [0] + [int (a + 1) for a in selected_indices]]
+	#train_data = train_data [:, [0] + [int (a + 1) for a in selected_indices]]
 
 	# Train the model
 	pred_model = train_model (train_data, best_model, best_model_params, lag)

@@ -7,7 +7,6 @@ import glob
 from sklearn import preprocessing
 from sklearn.model_selection import train_test_split as train_test
 from sklearn.model_selection import StratifiedShuffleSplit, ShuffleSplit, TimeSeriesSplit
-from sklearn.utils import shuffle # to shuffle the data
 
 from ast import literal_eval
 from joblib import Parallel, delayed
@@ -16,6 +15,9 @@ from src. feature_selection. reduction import manual_selection, reduce_train_tes
 #from src. clustering import *
 from src. prediction. tools import *
 from src. prediction. training import *
+
+from sklearn.utils import shuffle # to shuffle the 
+
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -80,7 +82,7 @@ def predict_area (subjects, target_column, set_of_behavioral_predictors, convers
 
 	"""
 		- subjects:
-		- target_column:
+		- target_column: brain area
 		- set_of_behavioral_predictors:
 		- convers: the list of conversations
 		- lag: the lag parameter
@@ -109,12 +111,12 @@ def predict_area (subjects, target_column, set_of_behavioral_predictors, convers
 	else:
 		numb_test = 5
 
-	if model == "baseline":
-		find_params = True
-	for behavioral_predictors in set_of_behavioral_predictors:
-		# concatenate data of all subjects  with regards to thje behavioral variables
-		score = []
+	#if model == "baseline":
+		#find_params = True
 
+	for behavioral_predictors in set_of_behavioral_predictors:
+
+		# concatenate data of all subjects  with regards to the behavioral variables
 		all_data = concat_ (subjects [0], target_column, convers, lag, behavioral_predictors, False, reg_model)
 		for subject in subjects [1:]:
 			subject_data = concat_ (subject, target_column, convers, lag, behavioral_predictors, False, reg_model)
@@ -131,71 +133,66 @@ def predict_area (subjects, target_column, set_of_behavioral_predictors, convers
 		#all_data = shuffle_data_by_blocks (all_data, 45)
 		#np. random. shuffle (all_data)
 		all_data = shuffle (all_data, random_state = 5)
+		if all_data. shape [1] == 0:
+			exit (1)
 
-		# make 5 experiment of prediction the test data (20% of the data)
+		# make 5 experiment of prediction the test data (20% of the data each one)
 		perc = int (all_data. shape [0] * 0.2)
+		score = []
+		for l in range (numb_test):
+			test_index = list (range (l * perc,  (l + 1)* perc))
+			train_index = list (range (l * perc)) + list (range ((l + 1) * perc,  all_data. shape [0]))
 
-		# tested number of variables for feature selection
-		if model == "baseline":
-			set_k = [all_data. shape [1] - 1]
-		else:
-			set_k = [3, 4, 5, 6, 7, 8, 9]
+			train_data = all_data [train_index, :]
+			test_data = all_data [test_index, :]
 
-		for n_comp in set_k:
-			print ("RFE K = %s ----------"%n_comp)
-			method = "RFE_%d"%n_comp
-			score = []
-			for l in range (numb_test):
-				test_index = list (range (l * perc,  (l + 1)* perc))
-				train_index = list (range (l * perc)) + list (range ((l + 1) * perc,  all_data. shape [0]))
+			# normalize data
+			min_max_scaler = preprocessing. MinMaxScaler ()
+			train_data [:,1:] = min_max_scaler. fit_transform (train_data [:,1:])
+			test_data [:,1:] = min_max_scaler. transform (test_data [:,1:])
 
-				_train_data = all_data [train_index, :]
-				_test_data = all_data [test_index, :]
+			# check if feature selection must be used
+			if method == "rfe" and model != "baseline":
+				selected_indices = features_in_select_results (selection_results, target_column, lagged_names)
+				train_data = train_data [:, [0] + [int (a + 1) for a in selected_indices]]
+				test_data = test_data [:, [0] + [int (a + 1) for a in selected_indices]]
+				method = "RFE_%d"%len (selected_indices)
 
-				# normalization
-				min_max_scaler = preprocessing. MinMaxScaler ()
-				_train_data [:,1:] = min_max_scaler. fit_transform (_train_data [:,1:])
-				_test_data [:,1:] = min_max_scaler. transform (_test_data [:,1:])
+			elif method == "None" or model == "baseline":
+				selected_features = str (lagged_names)
+				selected_indices =  [x for x in range (len (lagged_names))]
+				method == "None"
 
-				if n_comp < _test_data. shape [1]:
-					train_data, test_data, selected_indices = ref_local (_train_data, _test_data, n_comp)
-					print (test_data. shape)
+			# k-fold cross validation
+			if find_params and model not in ["LSTM"]:
+				valid_size = int (all_data. shape [0] * 0.2)
+				# k_l_fold_cross_validation to find the best parameters
+				best_model_params, pred_model = k_l_fold_cross_validation (train_data, target_column, model, lag = 1, n_splits = 1, block_size = valid_size)
 
-				else:
-					train_data, test_data = _train_data. copy (), _test_data. copy ()
+			# exception for lstm model: execute it without cross validation
+			elif model == 'LSTM':
+				best_model_params =  {'epochs': [20],  'neurons' : [30]}
+				pred_model = train_model (train_data, model, best_model_params, lag)
 
-				# k-fold cross validation
-				if find_params and model not in ["LSTM"]:
-					valid_size = int (all_data. shape [0] * 0.2)
-					# k_l_fold_cross_validation to find the best parameters
-					best_model_params, pred_model = k_l_fold_cross_validation (train_data, target_column, model, lag = 1, n_splits = 1, block_size = valid_size)
+			# else, we read the models parameters obtained by the previous k fold cross validation
+			else:
+				# extract model params from the k-fold-validation results
+				models_params_file = glob. glob ("results/models_params/*%s_%s.csv" %(model, convers_type))[0]
+				best_model_params = extract_models_params_from_crossv (models_params_file, target_column, lagged_names)
+				# Train the model
+				pred_model = train_model (train_data, model, best_model_params, lag)
 
-				# exception for the lstm model: execute it without cross validation because of time ...
-				elif model == 'LSTM':
-					best_model_params =  {'epochs': [20],  'neurons' : [30]}
-					pred_model = train_model (train_data, model, best_model_params, lag)
+			# Compute the score on test data
+			score. append (test_model (test_data[: , 1:], test_data[: , 0], pred_model, lag, model))
 
-				else:
-					# extract model params from the previous k-fold-validation results
-					models_params_file = glob. glob ("results/models_params/*%s_%s.csv" %(model, convers_type))[0]
-					best_model_params = extract_models_params_from_crossv (models_params_file, target_column, lagged_names)
-					# Train the model
-					pred_model = train_model (train_data, model, best_model_params, lag)
+		row = [target_column, method, best_model_params, str (dict(behavioral_predictors)),\
+		 str (lagged_names),  str ([lagged_names [i] for i in selected_indices])] \
+		+ np. mean (score, axis = 0). tolist () + np. std (score, axis = 0). tolist ()
 
-				# Compute the score on test data
-				score. append (test_model (test_data[: , 1:], test_data[: , 0], pred_model, lag, model))
+		# write the results
+		write_line (filename, row, mode = "a+")
 
-			row = [target_column, method, best_model_params, str (dict(behavioral_predictors)), str (lagged_names),  str ([lagged_names [i] for i in selected_indices])] \
-			+ np. mean (score, axis = 0). tolist () + np. std (score, axis = 0). tolist ()
-
-			write_line (filename, row, mode = "a+")
-
-			# if the model the baseline (random), using multiple behavioral predictors has no effect
-			if model == "baseline":
-				break
-
-			if n_comp >= (_test_data. shape [1] - 1):
-				break
+		# if the model the baseline (random), using multiple behavioral predictors has no effect
 		if model == "baseline":
 			break
 
@@ -208,7 +205,6 @@ def predict_all (subjects, _regions, lag, k, model, remove, _find_params):
 				"recall. mean", "precision. mean", "fscore. mean",  "recall. std", "precision. std", "fscore. std"]
 
 	print (_regions)
-	#exit (1)
 	subjects_str = "subject"
 	for subj in subjects:
 		subjects_str += "_%s"%subj
@@ -231,7 +227,6 @@ def predict_all (subjects, _regions, lag, k, model, remove, _find_params):
 			f. write ('\n')
 			f. close ()
 
-	#_regions = ["region_%d"%i for i in regions]
 	subjects = ["sub-%02d"%i for i in subjects]
 
 	# fill HH and HR conversations
@@ -247,10 +242,10 @@ def predict_all (subjects, _regions, lag, k, model, remove, _find_params):
 
 
 	# Predict HH  and HR conversations separetely
-	Parallel (n_jobs=3) (delayed (predict_area)
+	Parallel (n_jobs=1) (delayed (predict_area)
 	(subjects, target_column, manual_selection (target_column), convers = hh_convers, lag = int (lag), model = model, filename = filename_hh, find_params = _find_params)
 									for target_column in _regions)
 
-	Parallel (n_jobs=3) (delayed (predict_area)
+	Parallel (n_jobs=1) (delayed (predict_area)
 	(subjects, target_column, manual_selection (target_column), convers = hr_convers, lag = int (lag), model = model, filename = filename_hr, find_params = _find_params)
 									for target_column in _regions)

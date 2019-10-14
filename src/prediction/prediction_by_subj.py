@@ -4,67 +4,40 @@ import sys
 import os
 import glob
 
-from sklearn import preprocessing
-from sklearn.model_selection import train_test_split as train_test
-from sklearn.model_selection import StratifiedShuffleSplit, ShuffleSplit, TimeSeriesSplit
-from sklearn.utils import shuffle # to shuffle the data
-
-from ast import literal_eval
-from joblib import Parallel, delayed
-
-from src. feature_selection. reduction import manual_selection, reduce_train_test, ref_local
-#from src. clustering import *
+from src. clustering import *
 from src. prediction. tools import *
 from src. prediction. training import *
+from sklearn import preprocessing
+from ast import literal_eval
+
+from joblib import Parallel, delayed
 
 import warnings
 warnings.filterwarnings("ignore")
 
-#===========================================================
-def extract_models_params_from_crossv (crossv_results_filename, brain_area, features):
-	"""
-		- extract  parameters of the mode from cross-validation results
+from sklearn.model_selection import train_test_split as train_test
+from sklearn.model_selection import StratifiedShuffleSplit, ShuffleSplit, TimeSeriesSplit
 
-		- crossv_results_filename: the filename of the model where the results are saved.
-		- brain_area: brain region name
-		- features: the set of predictive features
-		- dictionary containing the parameter of the model
-	"""
+from src.reduction import manual_selection
+from sklearn.cluster import KMeans, DBSCAN
 
-	features_exist_in_models_params = False
-	models_params = pd.read_csv (crossv_results_filename, sep = ';', header = 0, na_filter = False, index_col = False)
-	models_params = models_params. loc [(models_params ["region"] ==  brain_area)]
-
-	# find the models_paras associated to each predictors_list
-	for i in list (models_params. index):
-		if set (literal_eval(models_params. loc [i, "predictors_list"])) == set (features):
-			features_exist_in_models_params = True
-			best_model_params = models_params. ix [i, "models_params"]
-			break
-
-	# else, choose the best model_params without considering features
-	if not features_exist_in_models_params:
-		best_model_params =  models_params. loc [models_params ["region"] ==  brain_area]
-		best_model_params_index = best_model_params ["fscore. mean"].idxmax ()
-		best_model_params = models_params. ix [best_model_params_index, "models_params"]#. iloc [0]
-
-	return literal_eval (best_model_params)
 
 #===========================================================
 def features_in_select_results (selec_results, region, features):
 	"""
 		- check if a set of predictive variables has been processed in the feature selection step
 			if so, the reduced form of this set is used
+
 		- selec_results: the dataframe containing the feature selection results
 			region: brain region
+
 		- features: the set of predictive features
+
 		- returns the indices (in the list features) of the selected variables
 	"""
 	features_exist = False
 	results_region = selec_results. loc [(selec_results ["region"] ==  region)]
 	selected_indices = [i for i in range (len (features))]
-
-	# TODO: groupe by [region, features]
 
 	''' find the models_paras associated to each predictors_list '''
 	for i in list (results_region. index):
@@ -72,6 +45,7 @@ def features_in_select_results (selec_results, region, features):
 			features_exist = True
 			selected_indices = literal_eval (results_region. ix [i, "selected_features"])
 			break
+
 	return selected_indices
 
 #============================================================
@@ -107,62 +81,61 @@ def predict_area (subjects, target_column, set_of_behavioral_predictors, convers
 	if find_params:
 		numb_test = 1
 	else:
-		numb_test = 5
+		numb_test = 1
 
 	if model == "baseline":
 		find_params = True
+
+
+
 	for behavioral_predictors in set_of_behavioral_predictors:
 		# concatenate data of all subjects  with regards to thje behavioral variables
+
 		score = []
 
-		all_data = concat_ (subjects [0], target_column, convers, lag, behavioral_predictors, False, reg_model)
-		for subject in subjects [1:]:
-			subject_data = concat_ (subject, target_column, convers, lag, behavioral_predictors, False, reg_model)
-			all_data = np.concatenate ((all_data, subject_data), axis = 0)
+		for subject in subjects:
 
-		if  np.isnan (all_data). any ():
-			print ("Error in region %s with features %s"%(target_column,str (behavioral_predictors)))
-			exit (1)
+			all_data = concat_ (subject, target_column, convers, lag, behavioral_predictors, False, reg_model)
 
-		# names of lagged variables
-		lagged_names = get_lagged_colnames (behavioral_predictors, lag)
+			if  np.isnan (all_data). any ():
+				print ("Error in region %s with features %s"%(target_column,str (behavioral_predictors)))
+				exit (1)
 
-		# shuffle data
-		#all_data = shuffle_data_by_blocks (all_data, 45)
-		#np. random. shuffle (all_data)
-		all_data = shuffle (all_data, random_state = 5)
+			''' names of lagged variables '''
+			lagged_names = get_lagged_colnames (behavioral_predictors)
 
-		# make 5 experiment of prediction the test data (20% of the data)
-		perc = int (all_data. shape [0] * 0.2)
+			''' shuffle data '''
+			all_data = shuffle_data_by_blocks (all_data, 45)
+			#np. random. shuffle (all_data)
 
-		# tested number of variables for feature selection
-		if model == "baseline":
-			set_k = [all_data. shape [1] - 1]
-		else:
-			set_k = [3, 4, 5, 6, 7, 8, 9]
 
-		for n_comp in set_k:
-			print ("RFE K = %s ----------"%n_comp)
-			method = "RFE_%d"%n_comp
-			score = []
+			'''make 5 experiment of prediction the test data (20% of the data)'''
+			perc = int (all_data. shape [0] * 0.2)
+
 			for l in range (numb_test):
 				test_index = list (range (l * perc,  (l + 1)* perc))
 				train_index = list (range (l * perc)) + list (range ((l + 1) * perc,  all_data. shape [0]))
 
-				_train_data = all_data [train_index, :]
-				_test_data = all_data [test_index, :]
+				train_data = all_data [train_index]
+				test_data = all_data [test_index]
 
-				# normalization
+				# normalize data
 				min_max_scaler = preprocessing. MinMaxScaler ()
-				_train_data [:,1:] = min_max_scaler. fit_transform (_train_data [:,1:])
-				_test_data [:,1:] = min_max_scaler. transform (_test_data [:,1:])
+				train_data [:,1:] = min_max_scaler. fit_transform (train_data [:,1:])
+				test_data [:,1:] = min_max_scaler. transform (test_data [:,1:])
 
-				if n_comp < _test_data. shape [1]:
-					train_data, test_data, selected_indices = ref_local (_train_data, _test_data, n_comp)
-					print (test_data. shape)
 
-				else:
-					train_data, test_data = _train_data. copy (), _test_data. copy ()
+				''' check if feature selection must be used '''
+				if method == "rfe" and model != "baseline":
+					selected_indices = features_in_select_results (selection_results, target_column, lagged_names)
+					train_data = train_data [:, [0] + [int (a + 1) for a in selected_indices]]
+					test_data = test_data [:, [0] + [int (a + 1) for a in selected_indices]]
+
+
+				elif method == "None" or model == "baseline":
+					selected_features = str (lagged_names)
+					selected_indices =  [x for x in range (len (lagged_names))]
+					method == "None"
 
 				# k-fold cross validation
 				if find_params and model not in ["LSTM"]:
@@ -170,32 +143,48 @@ def predict_area (subjects, target_column, set_of_behavioral_predictors, convers
 					# k_l_fold_cross_validation to find the best parameters
 					best_model_params, pred_model = k_l_fold_cross_validation (train_data, target_column, model, lag = 1, n_splits = 1, block_size = valid_size)
 
-				# exception for the lstm model: execute it without cross validation because of time ...
+				# exception for lstm model: execute it without cross validation
 				elif model == 'LSTM':
 					best_model_params =  {'epochs': [20],  'neurons' : [30]}
 					pred_model = train_model (train_data, model, best_model_params, lag)
 
+				# else, we read the models parameters obtained by the previous k fold cross validation
 				else:
-					# extract model params from the previous k-fold-validation results
-					models_params_file = glob. glob ("results/models_params/*%s_%s.csv" %(model, convers_type))[0]
-					best_model_params = extract_models_params_from_crossv (models_params_file, target_column, lagged_names)
+					model_file = glob. glob ("results/models_params/*%s_%s.csv" %(model, convers_type))[0]
+					models_params = pd.read_csv (model_file, sep = ';', header = 0, na_filter = False, index_col = False)
+
+					features_exist_in_models_params = False
+					models_params = models_params. loc [(models_params ["region"] ==  target_column)]
+
+					''' find the models_paras associated to each predictors_list '''
+					for i in list (models_params. index):
+						if set (literal_eval(models_params. loc [i, "predictors_list"])) == set (lagged_names):
+							features_exist_in_models_params = True
+							best_model_params = models_params. ix [i, "models_params"]
+							break
+
+					''' else, choose the best model_params '''
+					if not features_exist_in_models_params:
+						best_model_params =  models_params. loc [models_params ["region"] ==  target_column]
+						best_model_params_index = best_model_params ["fscore. mean"].idxmax ()
+						best_model_params = models_params. ix [best_model_params_index, "models_params"]#. iloc [0]
+
+					best_model_params = literal_eval (best_model_params)
+
 					# Train the model
 					pred_model = train_model (train_data, model, best_model_params, lag)
 
 				# Compute the score on test data
 				score. append (test_model (test_data[: , 1:], test_data[: , 0], pred_model, lag, model))
 
-			row = [target_column, method, best_model_params, str (dict(behavioral_predictors)), str (lagged_names),  str ([lagged_names [i] for i in selected_indices])] \
-			+ np. mean (score, axis = 0). tolist () + np. std (score, axis = 0). tolist ()
 
-			write_line (filename, row, mode = "a+")
+		row = [target_column, method, best_model_params, str (dict(behavioral_predictors)), str (lagged_names),  str ([lagged_names [i] for i in selected_indices])] \
+		+ np. mean (score, axis = 0). tolist () + np. std (score, axis = 0). tolist ()
 
-			# if the model the baseline (random), using multiple behavioral predictors has no effect
-			if model == "baseline":
-				break
 
-			if n_comp >= (_test_data. shape [1] - 1):
-				break
+		write_line (filename, row, mode = "a+")
+
+		""" if the model the baseline (random), using multiple behavioral predictors has no effect """
 		if model == "baseline":
 			break
 
@@ -204,7 +193,7 @@ def predict_area (subjects, target_column, set_of_behavioral_predictors, convers
 def predict_all (subjects, _regions, lag, k, model, remove, _find_params):
 
 	print ("-- MODEL :", model)
-	colnames = ["region", "dm_method", "models_params", "predictors_dict", "predictors_list", "selected_predictors",
+	colnames = ["region", "dm_method", "models_params", "predictor_dict", "predictors_list", "selected_indices",
 				"recall. mean", "precision. mean", "fscore. mean",  "recall. std", "precision. std", "fscore. std"]
 
 	print (_regions)
@@ -247,10 +236,10 @@ def predict_all (subjects, _regions, lag, k, model, remove, _find_params):
 
 
 	# Predict HH  and HR conversations separetely
-	Parallel (n_jobs=3) (delayed (predict_area)
-	(subjects, target_column, manual_selection (target_column), convers = hh_convers, lag = int (lag), model = model, filename = filename_hh, find_params = _find_params)
+	Parallel (n_jobs=5) (delayed (predict_area)
+	(subjects, target_column, manual_selection (target_column), convers = hh_convers, lag = int (lag), model = model, filename = filename_hh, find_params = _find_params, method = "None")
 									for target_column in _regions)
 
-	Parallel (n_jobs=3) (delayed (predict_area)
-	(subjects, target_column, manual_selection (target_column), convers = hr_convers, lag = int (lag), model = model, filename = filename_hr, find_params = _find_params)
+	Parallel (n_jobs=5) (delayed (predict_area)
+	(subjects, target_column, manual_selection (target_column), convers = hr_convers, lag = int (lag), model = model, filename = filename_hr, find_params = _find_params, method = "None")
 									for target_column in _regions)

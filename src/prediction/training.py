@@ -24,14 +24,11 @@ import pandas as pd
 import random as rd
 from sklearn import linear_model
 from scipy.signal import find_peaks
-
 from src. prediction. tools import toSuppervisedData, get_behavioral_data
-
 from src. prediction. lstm import *
-
 import itertools as it
 
-
+#===========================================
 global_dict_models = {
 		"SGD": SGDClassifier (),
 		"GB": GradientBoostingClassifier (),
@@ -53,8 +50,10 @@ def find_peaks_ (y, height = 0):
 	return x
 
 #===========================================
+def discretize_preds (x):
 
-def discretize_preds (x, height = 0.1):
+	disc_file = pd. read_csv ("disc_params.txt", sep = ':', header = None, index_col = 0)
+	height = float (disc_file. loc ["threshold"]. values [0])
 
 	result = [i for i in x]
 	for i in range (len (result)):
@@ -75,7 +74,6 @@ def generate_tuples (a, b):
 def generate_models (params):
 
 	combinations = it. product (* (params[Name] for Name in params. keys ()))
-
 	keys = list (params. keys ())
 	res = []
 	for combin in list (combinations):
@@ -101,7 +99,6 @@ def get_items (predictors, external_predictors):
 #===========================================
 
 def get_max_of_list (data):
-
 	best_model = data [0]
 	best_index = 0
 	i = 1
@@ -117,24 +114,15 @@ def get_max_of_list (data):
 	return best_model, best_index
 
 #===========================================
-
 def k_fold_cross_validation (data, model, lag, params, block_size):
-
 	score = []
 	# split train data into nb_sets blocks
 	splits = [data [i : i + block_size] for i in range (0, len (data), block_size)]
-
-	#rd.shuffle(splits)
-
-	# train and validate each time
-	# validate the model on one conversation each time, and train it oh the others
 	for i in range (len (splits)):
 		# validation data
 		validation_convers  = splits [i]
 		# train data
 		train_convers = np. array ([element for bs in splits [0 : i] +  splits [i + 1 : ] for element in bs])
-
-
 		pred_model = train_model (train_convers, model, params, lag)
 		score. append (test_model (validation_convers[:, 1:], validation_convers[:, 0], pred_model, lag, model))
 
@@ -221,7 +209,6 @@ def  train_model (data, model, params, lag):
 	else:
 		pred_model = global_dict_models [model]
 		pred_model. set_params (**params )
-
 		pred_model. fit (data[:,1:], data[:,0])
 
 	return pred_model
@@ -237,14 +224,10 @@ def  test_model (X, Y, model, lag, model_type = "sickit"):
 
 	real = Y
 
-
 	if type(model).__name__ in ["Ridge", "RIDGE", "Lasso", "LinearRegression"]:
 		pred = discretize_preds (pred)
 		real = discretize_preds (real)
 
-	'''print (real)
-	print (pred)
-	exit (1)'''
 	recall_ 	= recall_score (real, pred, average = 'weighted')
 	precision_ 	= precision_score (real, pred, average = 'weighted')
 	fscore_ 	= f1_score (real, pred, average = 'weighted')
@@ -253,9 +236,6 @@ def  test_model (X, Y, model, lag, model_type = "sickit"):
 	precision_ 	= precision_score (real, pred)
 	fscore_ 	= f1_score (real, pred)'''
 
-	'''if recall_ == 0 or precision_ == 0:
-		fscore_ = 0
-	else:
-		fscore_ = 2 * (recall_ * precision_) / (recall_ + precision_)'''
+
 
 	return [recall_, precision_, fscore_]

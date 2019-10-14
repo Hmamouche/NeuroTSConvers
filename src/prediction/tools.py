@@ -35,23 +35,22 @@ def list_convers (n_blocks = 4, n_convs = 6):
 #=======================================================
 
 def get_behavioral_data (subject, convers, external_predictors):
-	external_data = pd.DataFrame ()
+	external_data = np. array ([])
 	external_filenames = ["time_series/%s/%s/%s.pkl"%(subject, data_type, convers) for data_type in external_predictors. keys ()]
 	external_columns = [external_predictors[item] for item in external_predictors. keys ()]
 
-
 	for filename, columns in zip (external_filenames, external_columns):
 
-		if external_data. empty:
+		if external_data. size == 0:
 			if os. path. exists (filename):
 				try:
-					external_data = pd.read_pickle (filename)[columns]
+					external_data = pd.read_pickle (filename)[columns]. values
 				except:
 					continue
 		else:
 			if os. path. exists (filename):
 				try:
-					external_data = pd. concat ([external_data, pd.read_pickle (filename)[columns]], axis = 1)
+					external_data = np. concatenate ((external_data, pd.read_pickle (filename)[columns]. values), axis = 1)
 				except:
 					continue
 
@@ -82,7 +81,7 @@ def train_test_split (data, test_size = 0.2):
 
 #============================================================
 
-def get_lagged_colnames (behavioral_predictors):
+def get_lagged_colnames (behavioral_predictors, lag):
 	# get behavioral variables colnames with time lag
 	columns = []
 	lagged_columns = []
@@ -92,11 +91,10 @@ def get_lagged_colnames (behavioral_predictors):
 		columns. extend (items)
 
 	for item in columns:
-		#lagged_columns. extend ([item + "_t5", item + "_t4", item + "_t3"])
-		lagged_columns. extend ([item])
+		lagged_columns. extend ([item + "_t%d"%(p) for p in range (lag, 2, -1)])
+		#lagged_columns. extend ([item])
 
 	return (lagged_columns)
-
 
 #=========================================================================================
 def concat_ (subject, target_column, convers, lag, behavioral_predictors, add_target = False, reg = False):
@@ -105,11 +103,11 @@ def concat_ (subject, target_column, convers, lag, behavioral_predictors, add_ta
 	for conv in convers:
 
 		if reg:
-			filename = "time_series/%s/physio_smooth_ts/%s.pkl"%(subject, conv)
+			filename = "time_series/%s/physio_ts/%s.pkl"%(subject, conv)
 		else:
 			filename = "time_series/%s/discretized_physio_ts/%s.pkl"%(subject, conv)
 
-		target = pd.read_pickle (filename)[target_column]
+		target = pd.read_pickle (filename). loc [:,[target_column]]. values
 
 		# Load neurophysio and behavioral predictors
 		if len (behavioral_predictors) > 0:
@@ -122,16 +120,25 @@ def concat_ (subject, target_column, convers, lag, behavioral_predictors, add_ta
 
 		# concatenate data of all conversations
 		if data.shape [0] == 0:
-			data = pd. concat ([target, external_data], axis = 1)
+			data = np. concatenate ((target, external_data), axis = 1)
 			if lag > 0:
-				supervised_data = toSuppervisedData (data.values, lag, add_target = add_target)
+				supervised_data = toSuppervisedData (data, lag, add_target = add_target)
 				data = np.concatenate ((supervised_data. targets[:,0:1], supervised_data.data), axis = 1)
+
 		else:
-			U = pd. concat ([target, external_data], axis = 1)
+			#U = pd. concat ([target, external_data], axis = 1)
+			U = np. concatenate ((target, external_data), axis = 1)
 			if lag > 0:
-				supervised_U = toSuppervisedData (U.values, lag, add_target = add_target)
+				supervised_U = toSuppervisedData (U, lag, add_target = add_target)
 				U = np.concatenate ((supervised_U. targets[:,0:1], supervised_U.data), axis = 1)
 			data =  np. concatenate ((data, U), axis = 0)
+
+		# DEBUG CONVERSATION
+		'''if data. shape [1] == 0:
+			print (18 * "=")
+			print (conv)
+			print (subject)
+			exit (1)'''
 
 	return data
 
@@ -149,36 +156,38 @@ class toSuppervisedData:
 		if not add_target:
 			self.data = np. delete (self.data, range (0, p), axis = 1)
 
-
 		delet = []
 
-		'''if X.shape[1] > 1 and p > 4:
+		if X.shape[1] > 1 and p > 4:
 			for j in range (0, self.data. shape [1], p):
-				#delet. append (j + 3)
-				delet. append (j + 4)
-				delet. append (j + 5)
-				delet. append (j + 6)
+				delet. extend ([j + p - i for i in range (1, 3)])
 
-		self.data = np. delete (self.data, delet, axis = 1)'''
+		self.data = np. delete (self.data, delet, axis = 1)
 
 		# compute the mean of lagged variables
-		n_var = int (self.data. shape [1] / p)
-		new_data = np.empty ([self.data. shape [0], n_var], dtype = np. float64)
+		'''n_var = int (self.data. shape [1] / p)
+		new_data = np.empty ([self.data. shape [0], 2 * n_var], dtype = np. float64)
+		new_data = np.array ([])
 
-		if X.shape[1] > 1:
+		if X.shape[1] > 2:
 			for j in range (0, self.data. shape [1], p):
 				# [0, 1, 2] is equivalent to t-3, t-4, t-5
 				col = self.data [:, [j + i for i in range (4)]]
-				new_data [:, int (j / p)] = np. mean (col, axis = 1)
+				#new_data [:, int (j / p)] = np. mean (col, axis = 1)
 
 				# make a PCA on each 	lagged variables
-				#model = PCA (n_components = 1)
-				#new_data [:, int (j / p)] = model.fit_transform (col). flatten ()
-				#print ( model.fit_transform (col). flatten ())
-				#exit (1)
+				model = PCA (n_components = 3)
+				factors = model.fit_transform (col)
 
-			self.data = new_data
+				if (np.isnan (factors). any ()):
+					print ("KAYEN")
 
+				if new_data. shape [0] == 0:
+					new_data = factors
+				else:
+					new_data = np. concatenate ((new_data, factors), axis = 1)
+
+			self.data = new_data'''
 
 	## p-decomposition of a vector
 	def vector_decomposition (self, x, p, test = False):

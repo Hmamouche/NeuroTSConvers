@@ -1,25 +1,29 @@
 import spacy as sp
 import numpy as np
-from textblob import Blobber
-from textblob_fr import PatternTagger, PatternAnalyzer
+#from textblob import Blobber
+#from textblob_fr import PatternTagger, PatternAnalyzer
 import matplotlib. pyplot as plt
+from pattern. fr import sentiment
 
 
 #-----------------------------------------------------------------------------
 # Plot dataframe
-def plot_df (df, labels, figname, figsize=(12,9), y_lim = [0,1]):
+def plot_df (df, labels, figname, figsize=(12,9), y_lim = [0,1.2]):
 	fig = plt.figure(figsize = figsize)
 
 	plt.title('Title!', color='black')
-	df. plot (y=labels, sharex=True, subplots=True, ylim = y_lim, sharey = True, grid=True, legend= False, ax=fig.gca())
+	df. plot (y=labels, sharex=True, subplots=True, xticks = df.index, fontsize = 7, grid=False, legend= False, ax=fig.gca())
 
 	ld = fig.legend(labels = labels,
-           loc='upper right',   # Position of legend
-           prop={'size':6},
-           ncol=1,
-           fontsize = 'small')
+	       loc='upper right',   # Position of legend
+	       prop={'size':6},
+	       ncol=1,
+	       fontsize = 'small')
 
-    #plot_df (squared_ts_sampled, labels_s, colors, markers, figsize=(10,6), figname = "fig.pdf", plot_types = 0)
+	fig.text (0.5, 0.12, 'Time (s)', ha='center')
+	fig.text (0.07, 0.5, 'Series', va='center', rotation='vertical')
+
+	#plot_df (squared_ts_sampled, labels_s, colors, markers, figsize=(10,6), figname = "fig.pdf", plot_types = 0)
 	plt. savefig (figname, additional_artists = [ld], bbox_inches='tight')
 	plt. cla ()
 	plt. close ()
@@ -89,8 +93,8 @@ def get_interval (sppasObject):
 #========================================================
 
 def normalize (signal):
-	M = signal
-	M. setflags(write=1)
+	M = signal [:]
+	#M. setflags(write=1)
 	max = np.max(M)
 	min = np.min(M)
 	for i in range (len (M)):
@@ -100,24 +104,20 @@ def normalize (signal):
 
 #========================================================
 
-def get_dicretized_ipu (tier, ax, value):
-	x = []
+def get_discretized_ipu (IPUs, ax, value = 1):
+
 	y = [0 for i in range (len (ax))]
 
 	# TODO : OPTIMIZE this loop
-	for sppasOb  in tier:
-		label, [start, stop], [start_r, stop_r] = get_interval (sppasOb)
-
+	for [start, stop]  in IPUs:
 		for j in range (len (ax)):
 			if ax[j] <= stop and ax[j] >= start:
-				if label in ["#", "", " ", "***", "*"] :
-					y[j] = 0
-				else:
-					y[j] = 1
+				y[j] = value
+				break
 	return y
 
-#=========================================================
 
+#===================================================
 def get_ipu (tier, value):
 	x = []
 	y = []
@@ -126,36 +126,6 @@ def get_ipu (tier, value):
 	for sppasOb  in tier:
 
 		label, [start, stop], [start_r, stop_r] = get_interval (sppasOb)
-		x. append (start)
-		x. append (stop);
-
-		#x. append ([start, stop])
-
-		if label in ["#", "", " ", "***", "*"] :
-			y. append (0)
-			y. append (0)
-		else:
-			y. append (value)
-			y. append (value)
-
-		if y[-1] != 0:
-			y.append (0)
-			x. append (x[-1])
-
-	return x, y
-
-#===================================================
-def new_get_ipu (tier, value):
-	x = []
-	y = []
-	#tier = tg.tierDict[item]. entryList
-
-	for sppasOb  in tier:
-
-		label, [start, stop], [start_r, stop_r] = get_interval (sppasOb)
-		'''x. append (start)
-		x. append (stop);
-		x. append ([start, stop])'''
 
 		if label in ["#", "", " ", "***", "*"] :
 			continue
@@ -166,76 +136,8 @@ def new_get_ipu (tier, value):
 
 	return x, y
 
-#=========================================================
-
-def get_item_ts (tier, value = 1):
-	x = []
-	y = []
-	#tier = tg.tierDict[item]. entryList
-
-	for sppasOb  in tier:
-
-		label, [start, stop], [start_r, stop_r] = get_interval (sppasOb)
-		x. append (start)
-		x. append (stop);
-
-		if label in ["#", "", " ", "***", "*"] :
-			y. append (0)
-			y. append (0)
-		else:
-			y. append (value)
-			y. append (value)
-
-		if y[-1] != 0:
-			y.append (0)
-			x. append (x[-1])
-
-	return x, y
-#=====================================================================
-# Get overlap
-def get_overlap (tier_left, tier_right, value = 1.0):
-
-	x = []
-	y = []
-
-
-	for sppasOb_l  in tier_left:
-
-		label_l, [start_l, stop_l], [radius_l, radius_l] = get_interval (sppasOb_l)
-
-		if label_l in [""," ", "#","***"]:
-			continue
-
-		for sppasOb_r  in tier_right:
-
-			label_r, [start_r, stop_r], [radius_r, radius_r] = get_interval (sppasOb_r)
-
-			if label_r not in ["", "#"," ", "***"] and max (start_l, start_r) < min (stop_l, stop_r):
-				x. append (max (start_l, start_r))
-				x. append (max (start_l, start_r)+0.0000001)
-				x. append (min (stop_l, stop_r))
-				x. append (min (stop_l, stop_r)+ 0.0000001)
-				y. append (0.0)
-				y. append (value)
-				y. append (value)
-				y. append (0.0)
-
-	if len (x) == 0:
-		return [0, 60], [0, 0]
-
-	if y[-1] != 0:
-		y.append (0)
-		x. append (x[-1])
-
-
-	if x[-1] != 60:
-		y.append (0)
-		x. append (60)
-
-	return x, y
-
 #=====================================================
-def get_overlap_new (tier_left, tier_right, value = 1.0):
+def get_overlap (tier_left, tier_right, value = 1.0):
 
 	x = []
 	y = []
@@ -265,7 +167,6 @@ def get_reaction_time (tier_left, tier_right):
 
 	# Store left intervals and the successor right interval
 	intervs_reponses = []
-
 
 	for sppasOb_l  in tier_left:
 
@@ -302,12 +203,13 @@ def get_reaction_time (tier_left, tier_right):
 
 	return x, y
 
+#===========================================================
 # Compute richess_lexicale with 2 methods
 # method 1 : number of adj + number of adv / total number of tokens
 # method 2 : number of different tokes / total
 def richess_lexicale (phrase, nlp,  method = "meth1"):
 
-	doc = nlp(phrase)
+	doc = nlp (phrase)
 
 	if method == "meth1":
 		nb_adj = 0
@@ -348,6 +250,7 @@ def richess_lexicale (phrase, nlp,  method = "meth1"):
 		print ("Error, the methode name is no correct, chose 'methd1' or 'meth2'")
 		exit (1)
 
+#===========================================================
 # Generate time series  (two vectors) corresponding to the richness text (using previous function)
 def generate_RL_ts (tier, nlp, method = "meth1"):
 	x = []
@@ -365,6 +268,7 @@ def generate_RL_ts (tier, nlp, method = "meth1"):
 	return x, y
 
 
+#===========================================================
 # Get emotions from text : polarity and subjectivity index
 # polarity in [-1, 1] : -1 pessimiste, 1 optimiste
 # Sunjectivity in [0, 1]
@@ -373,59 +277,58 @@ def emotion_ts_from_text (tier, nlp):
 	y = []
 	z = []
 
-	tb = Blobber(pos_tagger = PatternTagger(), analyzer = PatternAnalyzer())
-	
+	#tb = Blobber(pos_tagger = PatternTagger(), analyzer = PatternAnalyzer())
+
 	for sppasOb  in tier:
 
 		label, [start, stop], [start_r, stop_r] = get_interval (sppasOb)
 
-		x. append (stop)
+		x. append ((start + stop) / 2.0)
 		if label in ["#", "", " ", "***", "*"] :
 			y. append (0)
 			z. append (0)
 		else:
-			bob = tb (label)
-			polarity_and_sunjectivity = bob.sentiment
+			#bob = tb (label)
+			#polarity_and_sunjectivity = bob.sentiment
+			polarity_and_sunjectivity = sentiment (label)
 			y. append (polarity_and_sunjectivity[0])
 			z. append (polarity_and_sunjectivity[1])
 	return x, y, z
 
-
-
-#-------------------------------------
-def get_sub_times (tier, list_of_tokens):
+#===================================================
+def get_particle_items (tier, nlp, list_of_tokens):
 
 	x = []
 	y = []
-
 	for sppasOb  in tier:
-
 		label, [start, stop], [start_r, stop_r] = get_interval (sppasOb)
-		x. append (start)
-		x. append (stop)
 
-		if label in list_of_tokens:
-			y. append (1)
-			y. append (1)
+		x. append ((start + stop) / 2.0)
+		y_val = 0
 
-		else:
-			y. append (0)
-			y. append (0)
+		if label in ["#", "", " ", "***", "*"] :
+			y. append (y_val)
+			continue
 
-	if y[-1] != 0:
-		y.append (0)
-		x. append (x[-1])
+		words = list (nlp (label))
+		if len (words) > 3:
+			words = words[-3:]
 
-	return x, y
+		for word in words:
+			if word. string in list_of_tokens:
+				y_val = 1
+				break
+
+		y. append (y_val)
+
+	return [x, y]
+
 
 #====================================================
 def get_durations (tier, list_of_tokens):
 
 	x = []
-	y = []
-
 	for sppasOb  in tier:
-
 		label, [start, stop], [start_r, stop_r] = get_interval (sppasOb)
 
 		if label in list_of_tokens:
@@ -433,12 +336,12 @@ def get_durations (tier, list_of_tokens):
 
 	return x
 
-#---------------------------------------------
+#====================================================
 # Get ratios of items like discourse markers,
 def get_ratio (tier, list_of_tokens):
 	total_number_of_tokens = 0
 	ratio_of_tokens = []
-	x = [] # abcisse
+	x = []
 
 	for sppasOb  in tier:
 
@@ -465,9 +368,7 @@ def get_ratio (tier, list_of_tokens):
 	return x, ratio_of_tokens
 
 
-
-
-
+#====================================================
 # Make time series start from 0 and end in 60
 def align_ts (ts, interv):
 	if len (ts [0]) == 0:

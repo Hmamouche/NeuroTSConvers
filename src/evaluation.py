@@ -103,13 +103,13 @@ def process_multiple_subject (measures_mean, measures_std):
 
 		evaluation_files = glob ("results/prediction/*%s.tsv*"%conv)
 		evaluation_files. sort ()
-		fig, axs = plt.subplots (nrows = len (measures_mean), ncols = 1, figsize=(10,4))
+		fig, ax = plt.subplots (nrows = len (measures_mean), ncols = 1, figsize=(10,4))
 
 		if len (measures_mean) == 1:
-			ax = []
-			ax. append (axs)
+			ax = [ax]
+			#ax. append (axs)
 
-		bar_with = 0.008
+		bar_with = 0.003
 		distance = 0
 		local_dist = 0.001
 
@@ -120,10 +120,10 @@ def process_multiple_subject (measures_mean, measures_std):
 			if data. shape [0] == 0:
 				continue
 
-			regions = data .loc[:,"region"]. tolist ()
-			x_names = [int (region.split ('_')[-1]) / 10 +  distance for region in regions]
-			regions_names = [region.split ('_')[-1] for region in regions]
-			nb_to_region (regions_names)
+			regions = data .loc [:,"region"]. tolist ()
+			x_names = [(i + 1) / 20.0 +  distance for i in range (len (regions))]
+			'''regions_names = [region.split ('_')[-1] for region in regions]
+			nb_to_region (regions_names)'''
 			distance += bar_with + local_dist
 
 
@@ -132,22 +132,22 @@ def process_multiple_subject (measures_mean, measures_std):
 				errors = get_eval (data, regions, measures_std [i])
 				model_name = get_model_name (file)
 
-				#ax[i]. bar (x_names, evaluations, label = model_name, marker = '.', color = model_color (model_name))
 				ax[i]. bar (x_names, evaluations, label = model_name, width = bar_with, capsize=2, color = model_color (model_name), yerr = errors, align='center', alpha=0.9, ecolor='black')
 				ax[i]. set_ylabel (measures_mean [i])
 				ax[i]. set_xlabel ("Regions")
 
 			for i in range (len (measures_mean)):
-				ax[i].xaxis. set_major_locator ((ticker. IndexLocator (base = 0.1, offset= 2 * bar_with)))
-				ax[i].yaxis. set_major_locator (ticker. MultipleLocator (0.2))
+				ax[i].xaxis. set_major_locator ((ticker. IndexLocator (base = 1.0 / 20.0, offset= 2 * bar_with)))
+				ax[i].yaxis. set_major_locator (ticker. MultipleLocator (0.1))
 				ax[i].set_ylim (0, 1)
-				ax[i]. set_xticklabels (regions_names, minor = False)
+				ax[i]. set_xticklabels (regions, minor = False, rotation=-10)
 				ax[i]. grid (which='major', linestyle=':', linewidth='0.25', color='black')
 
-		plt.legend (loc='upper center', fancybox=True, shadow=True, ncol=5, fontsize = "x-small", markerscale = 0.2, labelspacing = 0.1, handletextpad=0.2, handlelength=1)
+		#plt.legend (loc='upper center', fancybox=True, shadow=True, ncol=5, fontsize = "small", markerscale = 0.2, labelspacing = 0.1, handletextpad=0.2, handlelength=1)
 		#plt.gca().legend (loc='upper center', bbox_to_anchor = (0.5, 1.7), fancybox=True, shadow=True, ncol=5, fontsize = "x-small", markerscale = 0.2, labelspacing = 0.1, handletextpad=0.2, handlelength=1)
-		#plt.legend (loc='upper right', bbox_to_anchor = (0.5, 0.5), ncol=1)
-		plt. savefig ("results/prediction/eval_%s.pdf"%conv)
+		plt.legend (loc='upper center', bbox_to_anchor = (0.5, 1), ncol=3)
+		plt.tight_layout()
+		plt. savefig ("results/prediction/results_%s.pdf"%conv)
 		#plt.tight_layout()
 		plt. show ()
 
@@ -168,7 +168,7 @@ if __name__=='__main__':
 		data = data. loc [data. groupby ("region") ["fscore. mean"]. idxmax (), :]
 
 		data. sort_index (inplace = True)
-		#df = data. loc[:, ["region", "selected_indices", "fscore"]]
+		data = data. loc[:, ["region", "dm_method", "predictors_dict", "selected_predictors", "fscore. mean", "fscore. std"]]
 
 		data.to_csv (csv_file. split ('.')[0]+ ".tsv", sep = '\t', index = False)
 		#df.to_html(csv_file. split ('.')[0]+ ".html",  index = False, border=False)
