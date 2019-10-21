@@ -1,6 +1,0 @@
-peak: False
-type: smooth
-nbins: 2
-data_type: p
-threshold: 0.1
-mean: False
