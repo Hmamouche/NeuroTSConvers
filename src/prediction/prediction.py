@@ -7,7 +7,7 @@ import glob
 from sklearn import preprocessing
 from sklearn.model_selection import train_test_split as train_test
 from sklearn.model_selection import StratifiedShuffleSplit, ShuffleSplit, TimeSeriesSplit
-from sklearn.utils import shuffle # to shuffle the data
+from sklearn.utils import shuffle
 
 from ast import literal_eval
 from joblib import Parallel, delayed
@@ -16,6 +16,12 @@ from src. feature_selection. reduction import manual_selection, reduce_train_tes
 #from src. clustering import *
 from src. prediction. tools import *
 from src. prediction. training import *
+
+from sklearn.ensemble import IsolationForest
+
+from fylearn.garules import MultimodalEvolutionaryClassifier
+from fylearn.nfpc import FuzzyPatternClassifier
+from fylearn.fpt import FuzzyPatternTreeTopDownClassifier
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -76,7 +82,7 @@ def features_in_select_results (selec_results, region, features):
 
 #============================================================
 
-def predict_area (subjects, target_column, set_of_behavioral_predictors, convers, lag, model, filename, find_params = False, method = "None"):
+def predict_area (subjects, target_column, set_of_behavioral_predictors, convers, lag, model, filename, find_params = False, method = "PCA"):
 
 	"""
 		- subjects:
@@ -127,8 +133,21 @@ def predict_area (subjects, target_column, set_of_behavioral_predictors, convers
 		# names of lagged variables
 		lagged_names = get_lagged_colnames (behavioral_predictors, lag)
 
+		# outlier elimination
+		outlier_model = IsolationForest (n_estimators=10, contamination = 0.2, behaviour = 'new')
+		outlier_model. fit (all_data [:,1:])
+		scores = outlier_model. predict (all_data [:,1:])
+
+		delt = []
+		for m in range (len (scores)):
+		    if scores [m] == -1:
+		        delt. append (m)
+
+		all_data = np. delete (all_data, delt, axis = 0)
+
 		# shuffle data
 		#all_data = shuffle_data_by_blocks (all_data, 45)
+
 		#np. random. shuffle (all_data)
 		all_data = shuffle (all_data, random_state = 5)
 
@@ -139,12 +158,14 @@ def predict_area (subjects, target_column, set_of_behavioral_predictors, convers
 		if model == "baseline":
 			set_k = [all_data. shape [1] - 1]
 		else:
-			set_k = [3, 4, 5, 6, 7, 8, 9]
+			set_k = [3, 5, 6] #, 7, 9, 10 , 11, 12]
 
 		for n_comp in set_k:
-			print ("RFE K = %s ----------"%n_comp)
-			method = "RFE_%d"%n_comp
+			print ("%s K = %s ----------"%(method, n_comp))
 			score = []
+
+			if type(n_comp) == int and n_comp >= all_data. shape [1]:
+				break
 			for l in range (numb_test):
 				test_index = list (range (l * perc,  (l + 1)* perc))
 				train_index = list (range (l * perc)) + list (range ((l + 1) * perc,  all_data. shape [0]))
@@ -157,15 +178,15 @@ def predict_area (subjects, target_column, set_of_behavioral_predictors, convers
 				_train_data [:,1:] = min_max_scaler. fit_transform (_train_data [:,1:])
 				_test_data [:,1:] = min_max_scaler. transform (_test_data [:,1:])
 
-				if n_comp < _test_data. shape [1]:
-					train_data, test_data, selected_indices = ref_local (_train_data, _test_data, n_comp)
-					print (test_data. shape)
 
+				if method == "RFE":
+					train_data, test_data, selected_indices = ref_local (_train_data, _test_data, n_comp)
 				else:
-					train_data, test_data = _train_data. copy (), _test_data. copy ()
+					train_data, test_data = reduce_train_test (_train_data, _test_data, method, perc_comps = float (n_comp) / (_train_data. shape[1] - 1), n_comps = n_comp)
+					selected_indices = [i for i in range (len (lagged_names))]
 
 				# k-fold cross validation
-				if find_params and model not in ["LSTM"]:
+				if find_params and model not in ["LSTM", "FUZZY"]:
 					valid_size = int (all_data. shape [0] * 0.2)
 					# k_l_fold_cross_validation to find the best parameters
 					best_model_params, pred_model = k_l_fold_cross_validation (train_data, target_column, model, lag = 1, n_splits = 1, block_size = valid_size)
@@ -174,6 +195,12 @@ def predict_area (subjects, target_column, set_of_behavioral_predictors, convers
 				elif model == 'LSTM':
 					best_model_params =  {'epochs': [20],  'neurons' : [30]}
 					pred_model = train_model (train_data, model, best_model_params, lag)
+
+				elif model == 'FUZZY':
+					#pred_model = MultimodalEvolutionaryClassifier()
+					pred_model = FuzzyPatternTreeTopDownClassifier ()
+					pred_model. fit (train_data[:, 1:], train_data[:, 0])
+					best_model_params = {}
 
 				else:
 					# extract model params from the previous k-fold-validation results
@@ -185,7 +212,7 @@ def predict_area (subjects, target_column, set_of_behavioral_predictors, convers
 				# Compute the score on test data
 				score. append (test_model (test_data[: , 1:], test_data[: , 0], pred_model, lag, model))
 
-			row = [target_column, method, best_model_params, str (dict(behavioral_predictors)), str (lagged_names),  str ([lagged_names [i] for i in selected_indices])] \
+			row = [target_column, "%s_%s"%(method, str (n_comp)), best_model_params, str (dict(behavioral_predictors)), str (lagged_names),  str ([lagged_names [i] for i in selected_indices])] \
 			+ np. mean (score, axis = 0). tolist () + np. std (score, axis = 0). tolist ()
 
 			write_line (filename, row, mode = "a+")
@@ -194,8 +221,6 @@ def predict_area (subjects, target_column, set_of_behavioral_predictors, convers
 			if model == "baseline":
 				break
 
-			if n_comp >= (_test_data. shape [1] - 1):
-				break
 		if model == "baseline":
 			break
 
@@ -208,10 +233,7 @@ def predict_all (subjects, _regions, lag, k, model, remove, _find_params):
 				"recall. mean", "precision. mean", "fscore. mean",  "recall. std", "precision. std", "fscore. std"]
 
 	print (_regions)
-	#exit (1)
-	subjects_str = "subject"
-	for subj in subjects:
-		subjects_str += "_%s"%subj
+	subjects = ["sub-%02d"%i for i in subjects]
 
 	if _find_params:
 		filename_hh = "results/models_params/%s_HH.csv"%(model)
@@ -231,8 +253,6 @@ def predict_all (subjects, _regions, lag, k, model, remove, _find_params):
 			f. write ('\n')
 			f. close ()
 
-	#_regions = ["region_%d"%i for i in regions]
-	subjects = ["sub-%02d"%i for i in subjects]
 
 	# fill HH and HR conversations
 	convers = list_convers ()
@@ -247,10 +267,10 @@ def predict_all (subjects, _regions, lag, k, model, remove, _find_params):
 
 
 	# Predict HH  and HR conversations separetely
-	Parallel (n_jobs=3) (delayed (predict_area)
+	Parallel (n_jobs=5) (delayed (predict_area)
 	(subjects, target_column, manual_selection (target_column), convers = hh_convers, lag = int (lag), model = model, filename = filename_hh, find_params = _find_params)
 									for target_column in _regions)
 
-	Parallel (n_jobs=3) (delayed (predict_area)
+	Parallel (n_jobs=5) (delayed (predict_area)
 	(subjects, target_column, manual_selection (target_column), convers = hr_convers, lag = int (lag), model = model, filename = filename_hr, find_params = _find_params)
 									for target_column in _regions)

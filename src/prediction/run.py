@@ -16,8 +16,12 @@ from src. feature_selection. reduction import manual_selection, reduce_train_tes
 from src. prediction. tools import *
 from src. prediction. training import *
 
-from sklearn.utils import shuffle # to shuffle the 
+from sklearn.utils import shuffle # to shuffle the
+from sklearn.ensemble import IsolationForest
 
+from fylearn.garules import MultimodalEvolutionaryClassifier
+from fylearn.nfpc import FuzzyPatternClassifier
+from fylearn.fpt import FuzzyPatternTreeTopDownClassifier
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -116,6 +120,7 @@ def predict_area (subjects, target_column, set_of_behavioral_predictors, convers
 
 	for behavioral_predictors in set_of_behavioral_predictors:
 
+
 		# concatenate data of all subjects  with regards to the behavioral variables
 		all_data = concat_ (subjects [0], target_column, convers, lag, behavioral_predictors, False, reg_model)
 		for subject in subjects [1:]:
@@ -126,6 +131,11 @@ def predict_area (subjects, target_column, set_of_behavioral_predictors, convers
 			print ("Error in region %s with features %s"%(target_column,str (behavioral_predictors)))
 			exit (1)
 
+		if all_data. shape [1] == 0:
+			print (behavioral_predictors)
+			exit (1)
+
+
 		# names of lagged variables
 		lagged_names = get_lagged_colnames (behavioral_predictors, lag)
 
@@ -133,8 +143,19 @@ def predict_area (subjects, target_column, set_of_behavioral_predictors, convers
 		#all_data = shuffle_data_by_blocks (all_data, 45)
 		#np. random. shuffle (all_data)
 		all_data = shuffle (all_data, random_state = 5)
-		if all_data. shape [1] == 0:
-			exit (1)
+
+		# outlier elimination
+		outlier_model = IsolationForest (n_estimators=10, contamination = 0.2, behaviour = 'new')
+		outlier_model. fit (all_data [:,1:])
+		scores = outlier_model. predict (all_data [:,1:])
+
+		delt = []
+		for m in range (len (scores)):
+		    if scores [m] == -1:
+		        delt. append (m)
+
+		all_data = np. delete (all_data, delt, axis = 0)
+
 
 		# make 5 experiment of prediction the test data (20% of the data each one)
 		perc = int (all_data. shape [0] * 0.2)
@@ -164,15 +185,22 @@ def predict_area (subjects, target_column, set_of_behavioral_predictors, convers
 				method == "None"
 
 			# k-fold cross validation
-			if find_params and model not in ["LSTM"]:
+			if find_params and model not in ["LSTM", "FUZZY"]:
 				valid_size = int (all_data. shape [0] * 0.2)
 				# k_l_fold_cross_validation to find the best parameters
-				best_model_params, pred_model = k_l_fold_cross_validation (train_data, target_column, model, lag = 1, n_splits = 1, block_size = valid_size)
+				best_model_params, pred_model = k_l_fold_cross_validation (train_data, target_column, model, lag = 1, n_splits = 2, block_size = valid_size)
 
 			# exception for lstm model: execute it without cross validation
 			elif model == 'LSTM':
-				best_model_params =  {'epochs': [20],  'neurons' : [30]}
+				best_model_params =  {'epochs': [50],  'neurons' : [30]}
 				pred_model = train_model (train_data, model, best_model_params, lag)
+
+			elif model == 'FUZZY':
+				#pred_model = MultimodalEvolutionaryClassifier()
+				pred_model = FuzzyPatternTreeTopDownClassifier ()
+				pred_model. fit (train_data[:, 1:], train_data[:, 0])
+				best_model_params = {}
+
 
 			# else, we read the models parameters obtained by the previous k fold cross validation
 			else:
@@ -242,10 +270,10 @@ def predict_all (subjects, _regions, lag, k, model, remove, _find_params):
 
 
 	# Predict HH  and HR conversations separetely
-	Parallel (n_jobs=1) (delayed (predict_area)
+	'''Parallel (n_jobs=5) (delayed (predict_area)
 	(subjects, target_column, manual_selection (target_column), convers = hh_convers, lag = int (lag), model = model, filename = filename_hh, find_params = _find_params)
-									for target_column in _regions)
+									for target_column in _regions)'''
 
-	Parallel (n_jobs=1) (delayed (predict_area)
+	Parallel (n_jobs=5) (delayed (predict_area)
 	(subjects, target_column, manual_selection (target_column), convers = hr_convers, lag = int (lag), model = model, filename = filename_hr, find_params = _find_params)
 									for target_column in _regions)

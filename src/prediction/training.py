@@ -14,8 +14,7 @@ from sklearn.feature_selection import SelectPercentile, chi2
 from sklearn.preprocessing import StandardScaler
 
 from sklearn.dummy import DummyClassifier
-from sklearn.ensemble import GradientBoostingClassifier
-from sklearn.ensemble import AdaBoostClassifier
+from sklearn.ensemble import AdaBoostClassifier, BaggingClassifier, GradientBoostingClassifier
 from sklearn.linear_model import LogisticRegression
 
 import numpy as np
@@ -30,6 +29,7 @@ import itertools as it
 
 #===========================================
 global_dict_models = {
+		"BAG": BaggingClassifier (),
 		"SGD": SGDClassifier (),
 		"GB": GradientBoostingClassifier (),
 		"RF": RandomForestClassifier (),
@@ -133,18 +133,20 @@ def k_fold_cross_validation (data, model, lag, params, block_size):
 
 def k_l_fold_cross_validation (data, target_column, model, lag, n_splits, block_size):
 
-	if model == "GB":
+	if model == "BAG":
+		models_params = generate_models ({'bootstrap': [False], 'n_estimators': [10, 50, 100, 200, 300], 'random_state': [5]})
+	elif model == "GB":
 		models_params = generate_models ({'learning_rate': [0.1, 0.2, 0.3, 0.4], 'n_estimators': [10, 50, 100], 'max_depth' : [5, 10, 50, 100]})
 	# models_params = generate_tuples (behavioral_predictors, [lag_max])
 
 	elif model == "ada":
-		models_params = generate_models ({'n_estimators': [50, 100, 500, 1000], 'learning_rate': [1.0, 0.9, 0.8]})
+		models_params = generate_models ({'n_estimators': [10, 50, 100, 500, 1000], 'learning_rate': [1.0, 0.9, 0.8]})
 
 	elif model == "LREG":
 		models_params = generate_models ({'C': [1, 0.9, 0.8, 0.7], 'solver': ['lbfgs', 'liblinear']})
 
 	elif model == "SVM":
-		models_params = generate_models ({'C': [1, 0.8], 'kernel': ['linear', "rbf"]})
+		models_params = generate_models ({'C': [1, 0.9, 0.8, 0.7], 'kernel': ['linear', "rbf"]})
 
 	elif model == "LSTM":
 		models_params = generate_models ({'epochs': [20],  'neurons' : [30]})
@@ -156,10 +158,7 @@ def k_l_fold_cross_validation (data, target_column, model, lag, n_splits, block_
 		models_params = generate_models ({'alpha': [0.001, 0.01, 0.05, 0.1, 0.2], 'loss': ["hinge"], 'penalty': ["l2", "l1"], 'max_iter': [20]})
 
 	elif model == "RF":
-		models_params = generate_models ({'bootstrap': [True],
-		 'max_depth': [5, 10, 50, 100],
-		 'max_features': ['auto'],
-		 'n_estimators': [10, 50, 100, 200, 300]})
+		models_params = generate_models ({'bootstrap': [True], 'max_depth': [10, 50, 100, 500], 'max_features': ['auto'], 'n_estimators': [10, 50, 100, 200, 300], 'random_state': [5]})
 
 	elif model == "baseline":
 		models_params = generate_models ({'strategy': ['uniform', 'stratified', "most_frequent"], 'random_state': [None]})
