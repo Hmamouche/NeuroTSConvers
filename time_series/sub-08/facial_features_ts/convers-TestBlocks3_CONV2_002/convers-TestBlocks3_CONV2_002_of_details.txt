@@ -1,5 +1,5 @@
 Input:data/videos/sub-08/convers-TestBlocks3_CONV2_002.avi
-Input full path:/home/youssef/multiModal/data/videos/sub-08/convers-TestBlocks3_CONV2_002.avi
+Input full path:/home/youssef/Github/PhysSocial/data/videos/sub-08/convers-TestBlocks3_CONV2_002.avi
 Camera parameters:500,500,320,240
 Output HOG:convers-TestBlocks3_CONV2_002.hog
 Output video:convers-TestBlocks3_CONV2_002.avi
