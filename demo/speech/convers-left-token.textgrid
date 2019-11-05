@@ -1,0 +1,150 @@
+File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0.0
+xmax = 58.9535600907000017
+tiers? <exists>
+size = 1
+item []:
+	item [1]:
+		class = "IntervalTier"
+		name = "Tokens"
+		xmin = 0.0
+		xmax = 58.9535600907
+		intervals: size = 29
+		intervals [1]:
+			xmin = 0.0
+			xmax = 6.04489795918
+			text = "#"
+		intervals [2]:
+			xmin = 6.04489795918
+			xmax = 6.76997732426
+			text = "et
+donc
+en_fait"
+		intervals [3]:
+			xmin = 6.76997732426
+			xmax = 9.10498866213
+			text = "#"
+		intervals [4]:
+			xmin = 9.10498866213
+			xmax = 9.30997732426
+			text = "*"
+		intervals [5]:
+			xmin = 9.30997732426
+			xmax = 11.62
+			text = "#"
+		intervals [6]:
+			xmin = 11.62
+			xmax = 11.9099773243
+			text = "*"
+		intervals [7]:
+			xmin = 11.9099773243
+			xmax = 12.14
+			text = "#"
+		intervals [8]:
+			xmin = 12.14
+			xmax = 13.6699773243
+			text = "oui
+j'
+ai
+vu
+une
+aubergine"
+		intervals [9]:
+			xmin = 13.6699773243
+			xmax = 14.2299773243
+			text = "#"
+		intervals [10]:
+			xmin = 14.2299773243
+			xmax = 16.3699773243
+			text = "pas
+très
+sympathique"
+		intervals [11]:
+			xmin = 16.3699773243
+			xmax = 18.64
+			text = "#"
+		intervals [12]:
+			xmin = 18.64
+			xmax = 18.7899773243
+			text = "*"
+		intervals [13]:
+			xmin = 18.7899773243
+			xmax = 19.74
+			text = "#"
+		intervals [14]:
+			xmin = 19.74
+			xmax = 22.0299773243
+			text = "*"
+		intervals [15]:
+			xmin = 22.0299773243
+			xmax = 22.26
+			text = "#"
+		intervals [16]:
+			xmin = 22.26
+			xmax = 23.8499773243
+			text = "*"
+		intervals [17]:
+			xmin = 23.8499773243
+			xmax = 25.3649886621
+			text = "#"
+		intervals [18]:
+			xmin = 25.3649886621
+			xmax = 25.6499773243
+			text = "*"
+		intervals [19]:
+			xmin = 25.6499773243
+			xmax = 30.4499773243
+			text = "#"
+		intervals [20]:
+			xmin = 30.4499773243
+			xmax = 32.6899773243
+			text = "qui
+faisait
+une
+peu
+aubergine
+halloween
+quoi"
+		intervals [21]:
+			xmin = 32.6899773243
+			xmax = 40.9899773243
+			text = "#"
+		intervals [22]:
+			xmin = 40.9899773243
+			xmax = 41.4699773243
+			text = "*"
+		intervals [23]:
+			xmin = 41.4699773243
+			xmax = 45.94
+			text = "#"
+		intervals [24]:
+			xmin = 45.94
+			xmax = 46.4899773243
+			text = "*"
+		intervals [25]:
+			xmin = 46.4899773243
+			xmax = 50.8550113379
+			text = "#"
+		intervals [26]:
+			xmin = 50.8550113379
+			xmax = 52.0099773243
+			text = "fin
+bon
+ça
+reste
+un
+légume"
+		intervals [27]:
+			xmin = 52.0099773243
+			xmax = 53.3150113379
+			text = "#"
+		intervals [28]:
+			xmin = 53.3150113379
+			xmax = 54.4899773243
+			text = "*"
+		intervals [29]:
+			xmin = 54.4899773243
+			xmax = 58.9535600907
+			text = "#"

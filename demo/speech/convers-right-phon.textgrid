@@ -1,0 +1,204 @@
+File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0.0
+xmax = 59.0
+tiers? <exists>
+size = 1
+item []:
+	item [1]:
+		class = "IntervalTier"
+		name = "Phones"
+		xmin = 0.0
+		xmax = 59.0
+		intervals: size = 32
+		intervals [1]:
+			xmin = 0.0
+			xmax = 0.289977324263
+			text = "noise"
+		intervals [2]:
+			xmin = 0.289977324263
+			xmax = 6.56
+			text = "sil"
+		intervals [3]:
+			xmin = 6.56
+			xmax = 6.90997732426
+			text = "fp"
+		intervals [4]:
+			xmin = 6.90997732426
+			xmax = 7.42997732426
+			text = "sil"
+		intervals [5]:
+			xmin = 7.42997732426
+			xmax = 8.78997732426
+			text = "w-E
+{Z|Z-@|S}
+{k-R-w-A/|k-R-w-A/-z}
+k
+{O~-n|O~}
+{d-w-A/-t|d-w-A/}
+{p-A/-R-l-e-R|p-A/-R-l-e}"
+		intervals [6]:
+			xmin = 8.78997732426
+			xmax = 9.38
+			text = "sil"
+		intervals [7]:
+			xmin = 9.38
+			xmax = 11.3899773243
+			text = "fp
+t
+{A/-E-s|A/|A/-z|A/-s}
+v-y
+{U~/-n|U~/}
+{l-E-g-y-m|l-E-g-y-m-@}
+O/-s-i"
+		intervals [8]:
+			xmin = 11.3899773243
+			xmax = 16.8849886621
+			text = "sil"
+		intervals [9]:
+			xmin = 16.8849886621
+			xmax = 18.1899773243
+			text = "{p-A/|p-A/-z}
+{t-R-e|t-R-e-z|t-R-E-z|t-R-E}
+{s-U~/-p-A/-t-i-k|s-U~/-p-A/-t-i-k-@}
+{t-y|t-j|t}
+{t-R-u-v-@|t-R-u-v}"
+		intervals [10]:
+			xmin = 18.1899773243
+			xmax = 20.8549659864
+			text = "sil"
+		intervals [11]:
+			xmin = 20.8549659864
+			xmax = 23.8499773243
+			text = "{p-A/-R-s-@-k-@|p-A/-s-@|p-s-k|p-A/-R-s-k|p-A/-s-k-@}
+{e-l|E-l|E|E-l-@}
+{A/-v-e|A/-v-e-t|A/-v-E|A/-v-E-t}
+{t-e|E-t-e|E-t-E|e-t-E|e-t-e|e-t-e-t}
+d-E-k-u-p-e
+A/-v-E-k
+{d|d-e-z|d-E|d-e|d-E-z}
+{j-2-z|j-@}
+{e|E}
+{y-n|y-n-@}
+{b-u-S|b-u-S-@}
+s
+{E-t|E-s-t|e|e-t|E-s-t-@|E|t}
+s-y-R"
+		intervals [12]:
+			xmin = 23.8499773243
+			xmax = 29.1
+			text = "sil"
+		intervals [13]:
+			xmin = 29.1
+			xmax = 29.6899773243
+			text = "@-m"
+		intervals [14]:
+			xmin = 29.6899773243
+			xmax = 33.8449886621
+			text = "sil"
+		intervals [15]:
+			xmin = 33.8449886621
+			xmax = 34.3699773243
+			text = "A/-l-O/-i-n"
+		intervals [16]:
+			xmin = 34.3699773243
+			xmax = 34.7150113379
+			text = "sil"
+		intervals [17]:
+			xmin = 34.7150113379
+			xmax = 35.1299773243
+			text = "d-A/-k-O/-R"
+		intervals [18]:
+			xmin = 35.1299773243
+			xmax = 36.76
+			text = "sil"
+		intervals [19]:
+			xmin = 36.76
+			xmax = 39.1599546485
+			text = "{O/-k-E|O/-k-e}
+m-w-A/
+{s-A/|s}
+{m|m-@}
+{f-@-z-e|f-2-z-E-t|f-z-e|f-s-E|f-2-z-e-t|f-2-z-E}
+{p-a~-s-e-R|p-a~-s-e}
+{U~/-p-@|U~/-p-2}
+O/"
+		intervals [20]:
+			xmin = 39.1599546485
+			xmax = 39.3549659864
+			text = "sil"
+		intervals [21]:
+			xmin = 39.3549659864
+			xmax = 40.0499773243
+			text = "O/
+{m-A/-s-k|m-A/-s-k-@}"
+		intervals [22]:
+			xmin = 40.0499773243
+			xmax = 42.1049886621
+			text = "sil"
+		intervals [23]:
+			xmin = 42.1049886621
+			xmax = 43.2399092971
+			text = "{t-y|t-j|t}
+{s-e-z|s-E-z|s-e|s-E|s}
+{l-E-z|l-e|l-e-z|l-@|l-E}
+fp"
+		intervals [24]:
+			xmin = 43.2399092971
+			xmax = 46.0499773243
+			text = "sil"
+		intervals [25]:
+			xmin = 46.0499773243
+			xmax = 48.2099773243
+			text = "{k-O/-m-@|k-O/-m}
+{k-O/-m-@|k-O/-m}
+{U~/-n|U~/}
+{m-A/-s-k|m-A/-s-k-@}
+{k-i|k-j|k}
+{O/-R-E-t|O/-R-e|O/-R-e-t|O/-R-E}
+{t-e|E-t-e|E-t-E|e-t-E|e-t-e|e-t-e-t}
+d-E-k-u-p-e"
+		intervals [26]:
+			xmin = 48.2099773243
+			xmax = 52.6499773243
+			text = "sil"
+		intervals [27]:
+			xmin = 52.6499773243
+			xmax = 53.5699773243
+			text = "{u-i|w-i}
+b-A/
+{u-i|w-i}
+s
+{E-t|E-s-t|e|e-t|E-s-t-@|E|t}"
+		intervals [28]:
+			xmin = 53.5699773243
+			xmax = 55.1549659864
+			text = "sil"
+		intervals [29]:
+			xmin = 55.1549659864
+			xmax = 57.2299773243
+			text = "s
+{E-t|E-s-t|e|e-t|E-s-t-@|E|t}
+{U~/-n|U~/}
+{l-E-g-y-m|l-E-g-y-m-@}
+{m|m-e|m-E|m-E-z|m-e-z}
+A/-v-E-k
+{d-z|d-2|d-2-z}
+{j-2-z|j-@}
+{k-O/-m-@|k-O/-m}
+{s-A/|s}
+s
+{E-t|E-s-t|e|e-t|E-s-t-@|E|t}"
+		intervals [30]:
+			xmin = 57.2299773243
+			xmax = 57.68
+			text = "sil"
+		intervals [31]:
+			xmin = 57.68
+			xmax = 57.9499773243
+			text = "{f-U~/|f-i-n|f-i}"
+		intervals [32]:
+			xmin = 57.9499773243
+			xmax = 59.0
+			text = "sil"

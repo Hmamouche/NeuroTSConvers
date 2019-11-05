@@ -1,0 +1,204 @@
+File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0.0
+xmax = 59.0
+tiers? <exists>
+size = 1
+item []:
+	item [1]:
+		class = "IntervalTier"
+		name = "Tokens"
+		xmin = 0.0
+		xmax = 59.0
+		intervals: size = 32
+		intervals [1]:
+			xmin = 0.0
+			xmax = 0.289977324263
+			text = "*"
+		intervals [2]:
+			xmin = 0.289977324263
+			xmax = 6.56
+			text = "#"
+		intervals [3]:
+			xmin = 6.56
+			xmax = 6.90997732426
+			text = "euh"
+		intervals [4]:
+			xmin = 6.90997732426
+			xmax = 7.42997732426
+			text = "#"
+		intervals [5]:
+			xmin = 7.42997732426
+			xmax = 8.78997732426
+			text = "ouais
+je
+crois
+qu'
+on
+doit
+parler"
+		intervals [6]:
+			xmin = 8.78997732426
+			xmax = 9.38
+			text = "#"
+		intervals [7]:
+			xmin = 9.38
+			xmax = 11.3899773243
+			text = "euh
+t'
+as
+vu
+un
+légume
+aussi"
+		intervals [8]:
+			xmin = 11.3899773243
+			xmax = 16.8849886621
+			text = "#"
+		intervals [9]:
+			xmin = 16.8849886621
+			xmax = 18.1899773243
+			text = "pas
+très
+sympathique
+tu
+trouves"
+		intervals [10]:
+			xmin = 18.1899773243
+			xmax = 20.8549659864
+			text = "#"
+		intervals [11]:
+			xmin = 20.8549659864
+			xmax = 23.8499773243
+			text = "parce_que
+elle
+avait
+été
+découpée
+avec
+des
+yeux
+et
+une
+bouche
+c'
+est
+sûr"
+		intervals [12]:
+			xmin = 23.8499773243
+			xmax = 29.1
+			text = "#"
+		intervals [13]:
+			xmin = 29.1
+			xmax = 29.6899773243
+			text = "hum"
+		intervals [14]:
+			xmin = 29.6899773243
+			xmax = 33.8449886621
+			text = "#"
+		intervals [15]:
+			xmin = 33.8449886621
+			xmax = 34.3699773243
+			text = "halloween"
+		intervals [16]:
+			xmin = 34.3699773243
+			xmax = 34.7150113379
+			text = "#"
+		intervals [17]:
+			xmin = 34.7150113379
+			xmax = 35.1299773243
+			text = "d'accord"
+		intervals [18]:
+			xmin = 35.1299773243
+			xmax = 36.76
+			text = "#"
+		intervals [19]:
+			xmin = 36.76
+			xmax = 39.1599546485
+			text = "ok
+moi
+ça
+me
+faisait
+penser
+un_peu
+au"
+		intervals [20]:
+			xmin = 39.1599546485
+			xmax = 39.3549659864
+			text = "#"
+		intervals [21]:
+			xmin = 39.3549659864
+			xmax = 40.0499773243
+			text = "au
+masque"
+		intervals [22]:
+			xmin = 40.0499773243
+			xmax = 42.1049886621
+			text = "#"
+		intervals [23]:
+			xmin = 42.1049886621
+			xmax = 43.2399092971
+			text = "tu
+sais
+les
+euh"
+		intervals [24]:
+			xmin = 43.2399092971
+			xmax = 46.0499773243
+			text = "#"
+		intervals [25]:
+			xmin = 46.0499773243
+			xmax = 48.2099773243
+			text = "comme
+comme
+un
+masque
+qui
+aurait
+été
+découpé"
+		intervals [26]:
+			xmin = 48.2099773243
+			xmax = 52.6499773243
+			text = "#"
+		intervals [27]:
+			xmin = 52.6499773243
+			xmax = 53.5699773243
+			text = "oui
+bah
+oui
+c'
+est"
+		intervals [28]:
+			xmin = 53.5699773243
+			xmax = 55.1549659864
+			text = "#"
+		intervals [29]:
+			xmin = 55.1549659864
+			xmax = 57.2299773243
+			text = "c'
+est
+un
+légume
+mais
+avec
+deux
+yeux
+comme
+ça
+c'
+est"
+		intervals [30]:
+			xmin = 57.2299773243
+			xmax = 57.68
+			text = "#"
+		intervals [31]:
+			xmin = 57.68
+			xmax = 57.9499773243
+			text = "fin"
+		intervals [32]:
+			xmin = 57.9499773243
+			xmax = 59.0
+			text = "#"

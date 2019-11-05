@@ -1,0 +1,150 @@
+File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0.0
+xmax = 58.9535600907000017
+tiers? <exists>
+size = 1
+item []:
+	item [1]:
+		class = "IntervalTier"
+		name = "Phones"
+		xmin = 0.0
+		xmax = 58.9535600907
+		intervals: size = 29
+		intervals [1]:
+			xmin = 0.0
+			xmax = 6.04489795918
+			text = "sil"
+		intervals [2]:
+			xmin = 6.04489795918
+			xmax = 6.76997732426
+			text = "{e|E}
+{d-O~|d-O~-k}
+{a~-f-E-t|a~-n-f-E|f-E-t|f-e|a~-n-f-e|a~-f-e|a~-n-f-E-t|a~-f-E|f-E}"
+		intervals [3]:
+			xmin = 6.76997732426
+			xmax = 9.10498866213
+			text = "sil"
+		intervals [4]:
+			xmin = 9.10498866213
+			xmax = 9.30997732426
+			text = "noise"
+		intervals [5]:
+			xmin = 9.30997732426
+			xmax = 11.62
+			text = "sil"
+		intervals [6]:
+			xmin = 11.62
+			xmax = 11.9099773243
+			text = "noise"
+		intervals [7]:
+			xmin = 11.9099773243
+			xmax = 12.14
+			text = "sil"
+		intervals [8]:
+			xmin = 12.14
+			xmax = 13.6699773243
+			text = "{u-i|w-i}
+{Z|S}
+{e|E}
+v-y
+{y-n|y-n-@}
+{O/-b-E-R-Z-i-n-@|O/-b-E-R-Z-i-n}"
+		intervals [9]:
+			xmin = 13.6699773243
+			xmax = 14.2299773243
+			text = "sil"
+		intervals [10]:
+			xmin = 14.2299773243
+			xmax = 16.3699773243
+			text = "{p-A/|p-A/-z}
+{t-R-e|t-R-e-z|t-R-E-z|t-R-E}
+{s-U~/-p-A/-t-i-k|s-U~/-p-A/-t-i-k-@}"
+		intervals [11]:
+			xmin = 16.3699773243
+			xmax = 18.64
+			text = "sil"
+		intervals [12]:
+			xmin = 18.64
+			xmax = 18.7899773243
+			text = "noise"
+		intervals [13]:
+			xmin = 18.7899773243
+			xmax = 19.74
+			text = "sil"
+		intervals [14]:
+			xmin = 19.74
+			xmax = 22.0299773243
+			text = "noise"
+		intervals [15]:
+			xmin = 22.0299773243
+			xmax = 22.26
+			text = "sil"
+		intervals [16]:
+			xmin = 22.26
+			xmax = 23.8499773243
+			text = "noise"
+		intervals [17]:
+			xmin = 23.8499773243
+			xmax = 25.3649886621
+			text = "sil"
+		intervals [18]:
+			xmin = 25.3649886621
+			xmax = 25.6499773243
+			text = "noise"
+		intervals [19]:
+			xmin = 25.6499773243
+			xmax = 30.4499773243
+			text = "sil"
+		intervals [20]:
+			xmin = 30.4499773243
+			xmax = 32.6899773243
+			text = "{k-i|k-j|k}
+{f-@-z-e|f-2-z-E-t|f-z-e|f-s-E|f-2-z-e-t|f-2-z-E}
+{y-n|y-n-@}
+p-2
+{O/-b-E-R-Z-i-n-@|O/-b-E-R-Z-i-n}
+A/-l-O/-i-n
+k-w-A/"
+		intervals [21]:
+			xmin = 32.6899773243
+			xmax = 40.9899773243
+			text = "sil"
+		intervals [22]:
+			xmin = 40.9899773243
+			xmax = 41.4699773243
+			text = "noise"
+		intervals [23]:
+			xmin = 41.4699773243
+			xmax = 45.94
+			text = "sil"
+		intervals [24]:
+			xmin = 45.94
+			xmax = 46.4899773243
+			text = "noise"
+		intervals [25]:
+			xmin = 46.4899773243
+			xmax = 50.8550113379
+			text = "sil"
+		intervals [26]:
+			xmin = 50.8550113379
+			xmax = 52.0099773243
+			text = "{f-U~/|f-i-n|f-i}
+{b-O/-n|b-O~|b-O/|b-O~-n}
+{s-A/|s}
+{R-E-s-t|R-E-s-t-@}
+{U~/-n|U~/}
+{l-E-g-y-m|l-E-g-y-m-@}"
+		intervals [27]:
+			xmin = 52.0099773243
+			xmax = 53.3150113379
+			text = "sil"
+		intervals [28]:
+			xmin = 53.3150113379
+			xmax = 54.4899773243
+			text = "noise"
+		intervals [29]:
+			xmin = 54.4899773243
+			xmax = 58.9535600907
+			text = "sil"
