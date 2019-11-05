@@ -1,0 +1,17 @@
+matplotlib
+argparse
+Pillow==2.6.0
+imutils==0.5.2
+textblob==0.15.3
+textblob-fr==0.2.0
+spacy
+Keras
+tensorflow
+pandas
+sklearn
+dlib
+opencv-python
+tkinter : apt-get install python3-tk
+python -m spacy download fr_core_news_sm
+latex
+

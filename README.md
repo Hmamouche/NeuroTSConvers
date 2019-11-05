@@ -16,7 +16,7 @@ To test the process, we need 3 types of input data: the video of the interlocuto
 
   * Openface is required (https://github.com/TadasBaltrusaitis/OpenFace) to compute facial features from videos.
 
-  * install dependencies for python3:
+  * Install dependencies for python3:
     ```bash
     sudo pip install -r requirements.txt.
     ```
@@ -27,11 +27,11 @@ To test the process, we need 3 types of input data: the video of the interlocuto
 
   * A example is provided in the folder "demo". To run the example: 
 	```bash
-	python demo/run.py -t h -g -rg 5 6 7 8 9 
+	python demo/run.py -g -t h -rg 5 6 7 8 9 
 	
 	-g : to generate behavioral features from raw signals
 	-t : type on unteractions. -h for human-human and -r for human-robot.
-	-rg: brain areas codes to predict (see brain_areas.csv).
+	-rg: codes of brain areas to predict (see brain_areas.csv).
 	```
   * To visuliaze the predictions of brain activity: 
 
