@@ -1,0 +1,2 @@
+region	dm_method	lag	predictors_dict	selected_predictors	recall. mean	precision. mean	fscore. mean	recall. std	precision. std	fscore. std
+LeftFrontaleyeField	RFE_4	6	{'eyetracking_ts': ['x', 'y']}	['x_t4', 'y_t6', 'y_t4', 'y_t3']	0.5785667324128863	0.5507411695251943	0.5587264844414868	0.0	0.0	0.0
