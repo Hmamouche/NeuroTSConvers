@@ -7,7 +7,7 @@ A feature selection step is performed to select the input variables for the pred
 
 To test the process, we need 3 types of input data: the video of the interlocutor, speeches of both the participant and the interlocutur, and eyetracking data of the participant.
 
-# Extracted features
+## Extracted features
 * Speech and text features:  Signal envelop, Speech activity, Overlap, Filled-breaks, Feedbacks, Discourse markers, Particles items, Laughters, Lexical richness, Polarity, and Subjectivity.
 * Video and eyetracking features: Facial Action Units, Landmarks, Head Pose coordinates, saccades, gaze and speed coordinates, and variables categorizing where the subject is looking in at each time step (face, eyes, mouth).
 
@@ -28,8 +28,16 @@ To test the process, we need 3 types of input data: the video of the interlocuto
   * A example is provided in the folder "demo". To run the example: 
 	```bash
 	python demo/run.py -t h -g -rg 5 6 7 8 9 
-	```
 	
+	-g : to generate behavioral features from raw signals
+	-t : type on unteractions. -h for human-human and -r for human-robot.
+	-rg: brain areas codes to predict (see brain_areas.csv).
+	```
+  * To visuliaze the predictions of brain activity: 
+
+	```bash
+	python demo/animation.py
+	```
 
 
 
