@@ -1,2 +1,0 @@
-region;dm_method;lag;models_params;predictors_dict;predictors_list;selected_predictors;recall. mean;precision. mean;fscore. mean;recall. std;precision. std;fscore. std
-LeftFrontaleyeField;RFE_8;6;{'random_state': None, 'strategy': 'uniform'};{'eyetracking_ts': ['x', 'y']};['x_t6', 'x_t5', 'x_t4', 'x_t3', 'y_t6', 'y_t5', 'y_t4', 'y_t3'];['x_t6', 'x_t5', 'x_t4', 'x_t3', 'y_t6', 'y_t5', 'y_t4', 'y_t3'];0.49769888231426695;0.5490118864808691;0.5099351386850317;0.0;0.0;0.0
