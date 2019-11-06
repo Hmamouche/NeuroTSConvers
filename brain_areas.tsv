@@ -1,0 +1,15 @@
+Name	Code	Abreviation
+LeftVentralMotor	1	LVM
+LeftDorsalMotor	2	LDM
+LeftFusiformGyrus	3	LFG
+LeftFrontaleyeField	4	LFF
+Fusiform Gyrus	5	FFA
+Left Motor Cortex	6	LMC
+Right Motor Cortex	7	RMC
+Left Superior Temporal Sulcus	8	LSTS
+Right Superior Temporal Sulcus	9	RSTS
+Left Frontal Pole	10	LFP
+Right Frontal Pole	11	RFP
+Left Ventromedial PFC	12	LVPFC
+Right Ventromedial PFC	13	RVPFC
+
