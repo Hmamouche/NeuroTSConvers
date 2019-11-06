@@ -218,16 +218,16 @@ if __name__ == '__main__':
 			else:
 				data = np. concatenate ((data, np. array (data_dat ['data'][i])), axis = 1)
 
-		'''discr_data = np. empty (data. shape, dtype = float)
+		discr_data = np. empty (data. shape, dtype = float)
 		for j in range (data. shape[1]):
-			norm = data[:,j]
+			norm = data[:,j]. copy ()
 			normalize_vect (norm)
 			discretizer = KBinsDiscretizer (n_bins = 2, encode = 'ordinal', strategy = 'kmeans')
-			discr_data[:,j] = discretizer. fit_transform (norm. reshape (-1, 1)). flatten ()'''
+			discr_data[:,j] = discretizer. fit_transform (norm. reshape (-1, 1)). flatten ()
 
-		discr_data = np. empty (data. shape, dtype=float)
+		'''discr_data = np. empty (data. shape, dtype=float)
 		for j in range (data. shape[1]):
-		    discr_data[:,j] = discretize_vect_sliding (data[:,j]. tolist (), win_size = 10)
+		    discr_data[:,j] = discretize_vect_sliding (data[:,j]. tolist (), win_size = 10)'''
 
 		# smoothing the bold signal
 		smoothed_signal = []
@@ -269,14 +269,14 @@ if __name__ == '__main__':
 
 		    for i in range(nb_hh_convers):
 		        begin = nearestPoint (index, hh_convers.values[i][1]) + (385 * indice_block)
-		        end = nearestPoint (index, hh_convers.values[i][2]) + (385 * indice_block)
+		        end = nearestPoint (index, hh_convers.values[i][2]) + (385 * indice_block) + 2  # add two observatiosn after the endof the conversation
 		        convers_to_df (data, discr_data, smoothed_signal, colnames, index, begin, end, "CONV1", hh)
 		        hh += 2
 
 
 		    for i in range(nb_hr_convers):
 		        begin = nearestPoint (index, hr_convers.values[i][1]) + (385 * indice_block)
-		        end = nearestPoint (index, hr_convers.values[i][2]) + (385 * indice_block)
+		        end = nearestPoint (index, hr_convers.values[i][2]) + (385 * indice_block) + 2 # add two observatiosn after the endof the conversation
 		        convers_to_df (data, discr_data, smoothed_signal, colnames, index, begin, end, "CONV2", hr)
 		        hr += 2
 		    indice_block += 1

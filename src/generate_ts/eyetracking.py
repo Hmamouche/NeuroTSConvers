@@ -13,7 +13,6 @@ import argparse
 import utils.tools as ts
 
 sys.path.append (".")
-print (sys. path)
 from src.resampling import regroupe_data, resample_ts
 
 #===========================================================

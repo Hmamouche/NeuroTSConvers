@@ -100,6 +100,10 @@ def get_lagged_colnames (behavioral_predictors, lag):
 def concat_ (subject, target_column, convers, lag, behavioral_predictors, add_target = False, reg = False):
 
 	data = pd. DataFrame ()
+
+	if subject == "sub-01":
+		convers = convers [0:9]
+
 	for conv in convers:
 
 		if reg:
@@ -117,6 +121,13 @@ def concat_ (subject, target_column, convers, lag, behavioral_predictors, add_ta
 
 		if external_data. shape[0] == 0:
 			continue
+
+		# add to rows to behavioral features
+		external_data = np. append (external_data, external_data[-2:,:], axis = 0)
+		#external_data = external_data. append (external_data[-1])
+
+		if target. shape [0] < external_data. shape [0]:
+			external_data = external_data[0:target. shape [0],:]
 
 		# concatenate data of all conversations
 		if data.shape [0] == 0:

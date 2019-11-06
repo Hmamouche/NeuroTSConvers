@@ -14,5 +14,4 @@ def kmeans_auto (data, max_k =  8):
             score = clustering. inertia_
             best_model = clustering
 
-        print (k, score)
     return best_model, k

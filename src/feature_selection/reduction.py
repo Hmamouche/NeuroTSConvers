@@ -44,6 +44,11 @@ def reduce_train_test (train_, test_, method, perc_comps = 1.0, n_comps = 0):
 	train = train_.copy ()
 	test = test_. copy ()
 
+	# compute number of features to select from percentage
+	if n_comps == 0:
+		n_comps = (train. shape[1] - 1) * perc_comps
+		n_comps = int (n_comps)
+
 	if method == "None":
 	    return train, test, range (0, train. shape[1] - 1)
 
@@ -51,24 +56,23 @@ def reduce_train_test (train_, test_, method, perc_comps = 1.0, n_comps = 0):
 	    return ref_local (train_, test_, n_comps)
 
 	if method == "FCBF":
-	    sbest = fcbf (train [:, 1: ], train [:, 0], perc_comps)
+		sbest = fcbf (train [:, 1: ], train [:, 0], perc_comps)
 
-	    if len (sbest) == 0:
-	    	return train, test, range (0, train. shape[1] - 1)
+		#best_indices = [int (a) for a in sbest[:, 1]]
+		print (sbest)
 
-	    best_indices = [int (a) for a in sbest[:, 1]]
+		if len (sbest) == 0:
+			return train, test, []
 
-	    train = train [:,  [0] + [int (a) + 1 for a in best_indices]]
-	    test = test [:,  [0] + [int (a) + 1 for a in best_indices]]
+		sbest = [int (a) + 1 for a in sbest[:,1]]
 
-	    return train, test
+		train = train [:,  [0] + sbest]
+		test = test [:,  [0] + sbest]
 
-	if n_comps == 0:
-		n_comps = (train. shape[1] - 1) * perc_comps
-		n_comps = int (n_comps)
+		return train, test, sbest
 
 	if method == "PCA":
-	    model = PCA (n_components = n_comps)
+	    model = PCA (n_components = n_comps, random_state = 5)
 
 	elif method == "KPCA":
 	    model = KernelPCA (n_components = n_comps)
@@ -81,7 +85,7 @@ def reduce_train_test (train_, test_, method, perc_comps = 1.0, n_comps = 0):
 	train = np.concatenate ((train [:, 0:1], model. transform (train [:, 1: ])), axis=1)
 	test = np.concatenate ((test [:, 0:1], model. transform (test [:, 1: ])), axis=1)
 
-	return train, test
+	return train, test, [int (a) for a in range (train. shape[1] - 1)]
 
 #===============================================================#
 def ref_local (train, test, n_comp):
@@ -173,6 +177,8 @@ def manual_selection (region):
 	speech_activity_left = {"speech_left_ts": ["SpeechActivity_left"]}
 	speech_ipu = {"speech_ts": ["IPU"]}
 	speech_left_ipu = {"speech_left_ts": ["IPU_left"]}
+	speech_left_disc_ipu = {"speech_left_ts": ["disc_IPU_left"]}
+	speech_disc_ipu = {"speech_ts": ["disc_IPU"]}
 	speech_talk = {"speech_ts": ["talk"]}
 	speech_left_talk = {"speech_left_ts": ["talk_left"]}
 
@@ -196,12 +202,12 @@ def manual_selection (region):
 	speech_items_left = merge_dict ([speech_left_ipu, items_left])
 
 	if region in ["Fusiform Gyrus", "LeftFusiformGyrus"]:
-		#set_of_behavioral_predictors = [all_6]
-		set_of_behavioral_predictors = [face, head_pose_r, all_0, all_1, all_2, all_3, all_4, all_5, all_6, all_7, all_8, all_9]
+		set_of_behavioral_predictors = [all_1, all_8]
+		#set_of_behavioral_predictors = [face, head_pose_r, all_0, all_1, all_2, all_3, all_4, all_5, all_6, all_7, all_8, all_9]
 
 	elif region in ["LeftFrontaleyeField"]:
 		#set_of_behavioral_predictors = [all_6]
-		set_of_behavioral_predictors = [face, all_1, all_6, all_7, eyetracking, {"eyetracking_ts": ["Vx", "Vy"]}, {"eyetracking_ts": ["saccades"]}]
+		set_of_behavioral_predictors = [{"eyetracking_ts": ["x", "y"]}, eyetracking, {"eyetracking_ts": ["Vx", "Vy"]}, {"eyetracking_ts": ["saccades"]}]
 
 	elif region in ["LeftVentralMotor", "LeftDorsalMotor"]:
 		set_of_behavioral_predictors = [audio, audio_left, speech_left_ipu, speech_ipu, speech_talk, speech_left_talk,
@@ -212,22 +218,35 @@ def manual_selection (region):
 	elif region in ["Left Motor Cortex", "Right Motor Cortex"]:
 		#set_of_behavioral_predictors = [audio, audio_left, speech_left_ipu, speech_ipu, speech_talk, speech_left_talk, merge_dict ([speech_ipu, speech_left_ipu]),
 										#merge_dict ([speech_ipu, speech_talk]),  merge_dict ([speech_left_ipu, speech_left_talk]), merge_dict ([speech_left_ipu, AUcs]), merge_dict ([speech_left_ipu, AUrs])]
-		set_of_behavioral_predictors = [audio, speech_activity_left, audio_left, speech_left_ipu, speech_ipu, speech_talk, speech_left_talk,
+		#set_of_behavioral_predictors = [speech_left_ipu]
+
+		set_of_behavioral_predictors = [audio, speech_activity_left, audio_left, speech_left_ipu, speech_ipu, speech_talk, speech_left_talk, speech_left_disc_ipu,
+		merge_dict ([speech_left_disc_ipu, speech_disc_ipu]),
 		merge_dict ([speech_ipu, speech_left_ipu]),
 		merge_dict ([speech_activity_left, speech_left_talk]),
 		merge_dict ([speech_left_ipu, speech_left_talk]),
 		merge_dict ([speech_left_ipu, {"speech_left_ts":["Overlap_left"]}]),
-		merge_dict ([speech_left_ipu, {"speech_left_ts":["Overlap_left", "ReactionTime_left"]}])]
+		merge_dict ([speech_left_ipu, {"speech_left_ts":["Overlap_left", "ReactionTime_left"]}]),
+		merge_dict ([speech_left_disc_ipu, {"speech_left_ts":["Overlap_left", "ReactionTime_left"]}])
+		]
 
 	elif region in ["Left Superior Temporal Sulcus", "Right Superior Temporal Sulcus"]:
 
-		set_of_behavioral_predictors = [speech_items, AUrs, speech_ipu, speech_left_ipu, speech_left_talk, speech_talk, merge_dict([speech_items, AUrs]),
-										merge_dict ([speech_ipu, AUrs]), audio, merge_dict ([speech_ipu, audio]), audio_left, merge_dict ([speech_left_ipu, audio_left]),
-										merge_dict ([speech_ipu, items, emotions, lexicalR]), merge_dict ([speech_ipu, items, emotions])]
+		set_of_behavioral_predictors = [speech_items, speech_disc_ipu, speech_ipu, speech_left_ipu,
+										merge_dict([speech_items, AUrs]),
+										merge_dict ([speech_ipu, AUrs]), audio,
+										merge_dict ([speech_ipu, audio]),
+										merge_dict ([speech_left_ipu, audio_left]),
+										merge_dict ([speech_disc_ipu, items, emotions, lexicalR]),
+										merge_dict ([speech_ipu, items, emotions])]
 
 	elif region in ["region_6", "region_7"]:
-		set_of_behavioral_predictors = [speech_items, emotions, eyetracking, merge_dict ([speech_items, emotions]), merge_dict ([speech_items, eyetracking]),
-										merge_dict ([emotions, eyetracking]), merge_dict ([speech_items, emotions, eyetracking])]
+		set_of_behavioral_predictors = [speech_items, emotions, eyetracking,
+										merge_dict ([speech_items, emotions]),
+										merge_dict ([speech_items, eyetracking]),
+										merge_dict ([emotions, eyetracking]),
+										merge_dict ([speech_items, emotions, eyetracking]),
+										merge_dict ([speech_items, emotions, eyetracking])]
 
 
 	elif region in ["region_8", "region_9"]:

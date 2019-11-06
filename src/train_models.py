@@ -62,6 +62,8 @@ def train_model_area (subjects, target_column, convers, lag):
 	data of multiple subjects
 	"""
 
+	print (target_column, "\n ------------")
+
 	if (int (convers[0]. split ('_')[-1]) % 2 == 1): convers_type = "HH"
 	else : convers_type = "HR"
 
@@ -88,23 +90,26 @@ def train_model_area (subjects, target_column, convers, lag):
 			best_results = pred_results
 
 	#selected_features =  best_results ["selected_indices"]
-	selected_indices  = literal_eval (best_results ["selected_indices"])
-	best_behavioral_predictors = literal_eval (best_results ["predictor_dict"])
+	selected_features  = literal_eval (best_results ["selected_predictors"])
+	best_behavioral_predictors = literal_eval (best_results ["predictors_dict"])
 	best_model_params = literal_eval (best_results ["models_params"]. replace("'", '"'))
 
+	lagged_names = get_lagged_colnames (best_behavioral_predictors, args. lag)
 
-	# concatenate data of all subjects  with regards to thje behavioral variables
+	selected_indices = [lagged_names. index (col) for col in selected_features]
+
+	# concatenate data of all subjects  with regards to the behavioral variables
 	train_data = concat_ (subjects[0], target_column, convers, lag, best_behavioral_predictors, False)
+
+	# use only best features founded using feature selection
 	for subject in subjects[1:]:
 		subject_data = concat_ (subject, target_column, convers, lag, best_behavioral_predictors, False)
 		#train_data = np.concatenate ((train_data, subject_data), axis = 0)
 		train_data = np. concatenate ((train_data, subject_data), axis = 0)
 
-		np. random. shuffle (train_data)
-
 
 	# feature selection using the founded indices
-	#train_data = train_data [:, [0] + [int (a + 1) for a in selected_indices]]
+	train_data = train_data [:, [0] + [int (a + 1) for a in selected_indices]]
 
 	# Train the model
 	pred_model = train_model (train_data, best_model, best_model_params, lag)
@@ -120,8 +125,6 @@ def train_all (subjects, regions, lag):
 	for subj in subjects:
 		subjects_str += "_%s"%subj
 
-
-	_regions = ["region_%d"%i for i in regions]
 	subjects = ["sub-%02d"%i for i in subjects]
 
 	# fill HH and HR conversations
@@ -137,10 +140,10 @@ def train_all (subjects, regions, lag):
 
 	# Predict HH  and HR conversations separetely
 	Parallel (n_jobs = 1) (delayed (train_model_area) (subjects, target_column,  convers = hh_convers, lag = int (lag))
-									for target_column in _regions)
+									for target_column in regions)
 
 	Parallel (n_jobs = 1) (delayed (train_model_area) (subjects, target_column, convers = hr_convers, lag = int (lag))
-									for target_column in _regions)
+									for target_column in regions)
 
 if __name__=='__main__':
 	# read arguments
@@ -148,7 +151,6 @@ if __name__=='__main__':
 	parser. add_argument ('--subjects', '-s', nargs = '+', type = int)
 	parser. add_argument ("--remove", "-rm", help = "remove previous files", action = "store_true")
 	parser. add_argument ("--lag", "-p", default = 5, type = int)
-	#parser. add_argument ("--model", "-m", help = "using lstm model")
 	parser. add_argument ('--regions','-rg', nargs = '+', type=int)
 
 	if not os. path. exists ("trained_models"):
@@ -160,4 +162,11 @@ if __name__=='__main__':
 	if args. remove:
 		os. system ("rm trained_models/*")
 
-	train_all (args. subjects, args. regions, args. lag)
+	# get regions names for their codes
+	brain_areas_desc = pd. read_csv ("brain_areas.tsv", sep = '\t', header = 0)
+	brain_areas = []
+
+	for num_region in args. regions:
+		brain_areas. append (brain_areas_desc . loc [brain_areas_desc ["Code"] == num_region, "Name"]. values [0])
+
+	train_all (args. subjects, brain_areas, args. lag)

@@ -24,6 +24,15 @@ def color_negative_red (value):
 
 	return 'color: %s' % color
 
+
+#===========================================================
+def change_measure_name (measure):
+	if measure in ["fscore.mean", "fscore. mean"]:
+		return "F-score"
+	elif measure in ["precision.mean", "precision. mean"]:
+		return "Precision"
+	else:
+		return measure
 #===========================================================#
 
 def nb_to_region (region):
@@ -103,7 +112,7 @@ def process_multiple_subject (measures_mean, measures_std):
 
 		evaluation_files = glob ("results/prediction/*%s.tsv*"%conv)
 		evaluation_files. sort ()
-		fig, ax = plt.subplots (nrows = len (measures_mean), ncols = 1, figsize=(10,4))
+		fig, ax = plt.subplots (nrows = len (measures_mean), ncols = 1, figsize=(8,8),  sharex=True)
 
 		if len (measures_mean) == 1:
 			ax = [ax]
@@ -132,9 +141,9 @@ def process_multiple_subject (measures_mean, measures_std):
 				errors = get_eval (data, regions, measures_std [i])
 				model_name = get_model_name (file)
 
-				ax[i]. bar (x_names, evaluations, label = model_name, width = bar_with, capsize=2, color = model_color (model_name), yerr = errors, align='center', alpha=0.9, ecolor='black')
-				ax[i]. set_ylabel (measures_mean [i])
-				ax[i]. set_xlabel ("Regions")
+				ax[i]. bar (x_names, evaluations, label = model_name, width = bar_with, capsize=1.5, color = model_color (model_name), yerr = errors, align='center', alpha=0.9, ecolor='black')
+				ax[i]. set_ylabel (change_measure_name (measures_mean [i]))
+				ax[i]. set_xlabel ("Brain areas")
 
 			for i in range (len (measures_mean)):
 				ax[i].xaxis. set_major_locator ((ticker. IndexLocator (base = 1.0 / 20.0, offset= 2 * bar_with)))
@@ -145,7 +154,7 @@ def process_multiple_subject (measures_mean, measures_std):
 
 		#plt.legend (loc='upper center', fancybox=True, shadow=True, ncol=5, fontsize = "small", markerscale = 0.2, labelspacing = 0.1, handletextpad=0.2, handlelength=1)
 		#plt.gca().legend (loc='upper center', bbox_to_anchor = (0.5, 1.7), fancybox=True, shadow=True, ncol=5, fontsize = "x-small", markerscale = 0.2, labelspacing = 0.1, handletextpad=0.2, handlelength=1)
-		plt.legend (loc='upper center', bbox_to_anchor = (0.5, 1), ncol=3)
+		plt.legend (loc='upper center', bbox_to_anchor = (0.72, 0.93), ncol=3, bbox_transform = plt.gcf().transFigure)
 		plt.tight_layout()
 		plt. savefig ("results/prediction/results_%s.pdf"%conv)
 		#plt.tight_layout()
@@ -155,10 +164,10 @@ def process_multiple_subject (measures_mean, measures_std):
 
 if __name__=='__main__':
 
-	#measures_mean = ["recall. mean", "precision. mean", "fscore. mean"]
-	#measures_std = ["recall. std", "precision. std", "fscore. std"]
-	measures_mean = ["fscore. mean"]
-	measures_std = ["fscore. std"]
+	measures_mean = ["recall. mean", "precision. mean", "fscore. mean"]
+	measures_std = ["recall. std", "precision. std", "fscore. std"]
+	#measures_mean = ["fscore. mean"]
+	#measures_std = ["fscore. std"]
 
 	# Group data by max of fscore to find the best set of predictive variables
 	csv_files = glob ("results/prediction/*.csv*")
@@ -168,7 +177,7 @@ if __name__=='__main__':
 		data = data. loc [data. groupby ("region") ["fscore. mean"]. idxmax (), :]
 
 		data. sort_index (inplace = True)
-		data = data. loc[:, ["region", "dm_method", "predictors_dict", "selected_predictors", "fscore. mean", "fscore. std"]]
+		data = data. loc[:, ["region", "models_params", "dm_method", "lag", "predictors_dict", "selected_predictors", "recall. mean", "precision. mean", "fscore. mean", "recall. std", "precision. std", "fscore. std"]]
 
 		data.to_csv (csv_file. split ('.')[0]+ ".tsv", sep = '\t', index = False)
 		#df.to_html(csv_file. split ('.')[0]+ ".html",  index = False, border=False)

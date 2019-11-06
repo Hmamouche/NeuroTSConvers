@@ -1,23 +1,30 @@
 # -*- coding: utf-8 -*-
 # Author: Youssef Hmamouche
+
 import sys
 import os
 import glob
 
 from sklearn import preprocessing
-from sklearn.model_selection import train_test_split as train_test
-from sklearn.model_selection import StratifiedShuffleSplit, ShuffleSplit, TimeSeriesSplit
+#from sklearn.model_selection import train_test_split as train_test
+#from sklearn.model_selection import StratifiedShuffleSplit, ShuffleSplit, TimeSeriesSplit
+
+from sklearn.model_selection import StratifiedShuffleSplit
+
+
+
 from sklearn.utils import shuffle
+from sklearn.svm import OneClassSVM
+from sklearn.ensemble import IsolationForest
+from sklearn.neural_network import MLPClassifier
 
 from ast import literal_eval
 from joblib import Parallel, delayed
 
 from src. feature_selection. reduction import manual_selection, reduce_train_test, ref_local
-#from src. clustering import *
+from src. clustering import *
 from src. prediction. tools import *
 from src. prediction. training import *
-
-from sklearn.ensemble import IsolationForest
 
 from fylearn.garules import MultimodalEvolutionaryClassifier
 from fylearn.nfpc import FuzzyPatternClassifier
@@ -27,7 +34,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 #===========================================================
-def extract_models_params_from_crossv (crossv_results_filename, brain_area, features):
+def extract_models_params_from_crossv (crossv_results_filename, brain_area, features, reduction_method):
 	"""
 		- extract  parameters of the mode from cross-validation results
 
@@ -41,12 +48,20 @@ def extract_models_params_from_crossv (crossv_results_filename, brain_area, feat
 	models_params = pd.read_csv (crossv_results_filename, sep = ';', header = 0, na_filter = False, index_col = False)
 	models_params = models_params. loc [(models_params ["region"] ==  brain_area)]
 
-	# find the models_paras associated to each predictors_list
+	# find the models_paras associated to each predictors_list with dimension reduction method
 	for i in list (models_params. index):
-		if set (literal_eval(models_params. loc [i, "predictors_list"])) == set (features):
+		if set (literal_eval(models_params. loc [i, "predictors_list"])) == set (features) and models_params. loc [i, "dm_method"] == reduction_method:
 			features_exist_in_models_params = True
 			best_model_params = models_params. ix [i, "models_params"]
 			break
+
+	# find the models_paras associated to each predictors_list without dimension reduction method
+	if not features_exist_in_models_params:
+		for i in list (models_params. index):
+			if set (literal_eval(models_params. loc [i, "predictors_list"])) == set (features):
+				features_exist_in_models_params = True
+				best_model_params = models_params. ix [i, "models_params"]
+				break
 
 	# else, choose the best model_params without considering features
 	if not features_exist_in_models_params:
@@ -82,7 +97,7 @@ def features_in_select_results (selec_results, region, features):
 
 #============================================================
 
-def predict_area (subjects, target_column, set_of_behavioral_predictors, convers, lag, model, filename, find_params = False, method = "PCA"):
+def predict_area (subjects, target_column, set_of_behavioral_predictors, convers, lag, model, filename, find_params = False, method = "RFE"):
 
 	"""
 		- subjects:
@@ -104,7 +119,6 @@ def predict_area (subjects, target_column, set_of_behavioral_predictors, convers
 	if os.path.exists ("results/selection/selection_%s.csv" %(convers_type)):
 		selection_results = pd.read_csv ("results/selection/selection_%s.csv" %(convers_type),  sep = ';', header = 0, na_filter = False, index_col=False)
 
-
 	if model in ["RIDGE", "LASSO"]:
 		reg_model = True
 	else:
@@ -113,11 +127,18 @@ def predict_area (subjects, target_column, set_of_behavioral_predictors, convers
 	if find_params:
 		numb_test = 1
 	else:
-		numb_test = 5
+		numb_test = 1
 
 	if model == "baseline":
-		find_params = True
+		find_params = False
+		# if the model the baseline (random), using multiple behavioral predictors has no effect
+		set_of_behavioral_predictors = set_of_behavioral_predictors [0:1]
+
+
+	stratified_spliter = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=5)
+
 	for behavioral_predictors in set_of_behavioral_predictors:
+		#print (behavioral_predictors)
 		# concatenate data of all subjects  with regards to thje behavioral variables
 		score = []
 
@@ -134,7 +155,8 @@ def predict_area (subjects, target_column, set_of_behavioral_predictors, convers
 		lagged_names = get_lagged_colnames (behavioral_predictors, lag)
 
 		# outlier elimination
-		outlier_model = IsolationForest (n_estimators=10, contamination = 0.2, behaviour = 'new')
+		#outlier_model = OneClassSVM (gamma='auto').fit (all_data [:,1:])
+		outlier_model = IsolationForest (n_estimators = 100, contamination = 0.2, behaviour = 'new')
 		outlier_model. fit (all_data [:,1:])
 		scores = outlier_model. predict (all_data [:,1:])
 
@@ -145,56 +167,78 @@ def predict_area (subjects, target_column, set_of_behavioral_predictors, convers
 
 		all_data = np. delete (all_data, delt, axis = 0)
 
+		# generate 5 train-test splits
 		# shuffle data
-		#all_data = shuffle_data_by_blocks (all_data, 45)
-
-		#np. random. shuffle (all_data)
-		all_data = shuffle (all_data, random_state = 5)
+		#all_data = shuffle (all_data, random_state = 5)
 
 		# make 5 experiment of prediction the test data (20% of the data)
 		perc = int (all_data. shape [0] * 0.2)
 
 		# tested number of variables for feature selection
-		if model == "baseline":
+		if model == "baseline" or method == "None":
 			set_k = [all_data. shape [1] - 1]
 		else:
-			set_k = [3, 5, 6] #, 7, 9, 10 , 11, 12]
+			set_k = [1, 2, 3, 4, 5, 7, 9, 10 , 11, 12]
+			#set_k = [1, 2, 3, 4]
 
 		for n_comp in set_k:
 			print ("%s K = %s ----------"%(method, n_comp))
 			score = []
 
+			if method == "None":
+				dm_method = "None"
+			else:
+				dm_method = "%s_%s"%(method, str (n_comp))
+
 			if type(n_comp) == int and n_comp >= all_data. shape [1]:
 				break
-			for l in range (numb_test):
-				test_index = list (range (l * perc,  (l + 1)* perc))
-				train_index = list (range (l * perc)) + list (range ((l + 1) * perc,  all_data. shape [0]))
 
-				_train_data = all_data [train_index, :]
-				_test_data = all_data [test_index, :]
+			problem_inncomp = False
+
+			stratified_indexes = stratified_spliter. split (all_data [:,1:], all_data [:, 0])
+			for train_index, test_index in stratified_indexes:
+				#print ("---------\n", all_data. shape)
+				train_data = all_data [train_index, :]
+				test_data = all_data [test_index, :]
 
 				# normalization
 				min_max_scaler = preprocessing. MinMaxScaler ()
-				_train_data [:,1:] = min_max_scaler. fit_transform (_train_data [:,1:])
-				_test_data [:,1:] = min_max_scaler. transform (_test_data [:,1:])
+				train_data [:,1:] = min_max_scaler. fit_transform (train_data [:,1:])
+				test_data [:,1:] = min_max_scaler. transform (test_data [:,1:])
 
+				# clustering
+				for a in range (1, train_data.shape[1]):
+					clustering_model, n_clus = kmeans_auto (train_data [:, a:a+1], 5)
+					train_data [:, a] = clustering_model. labels_
+					clustering_model. fit (test_data [:, a:a+1])
+					test_data [:, a] = clustering_model. labels_
 
-				if method == "RFE":
-					train_data, test_data, selected_indices = ref_local (_train_data, _test_data, n_comp)
+				# feature selection
+				if n_comp < train_data. shape [1]:
+					train_data, test_data, selected_indices = reduce_train_test (train_data, test_data, method, perc_comps = float (n_comp) / (train_data. shape[1] - 1), n_comps = n_comp)
 				else:
-					train_data, test_data = reduce_train_test (_train_data, _test_data, method, perc_comps = float (n_comp) / (_train_data. shape[1] - 1), n_comps = n_comp)
-					selected_indices = [i for i in range (len (lagged_names))]
+					selected_indices = [a for a in range (len (lagged_names))]
+
+				if len (selected_indices) == 0:
+					problem_inncomp = True
+					break
 
 				# k-fold cross validation
-				if find_params and model not in ["LSTM", "FUZZY"]:
+				if find_params and model not in ["LSTM", "FUZZY", "MLP"]:
 					valid_size = int (all_data. shape [0] * 0.2)
 					# k_l_fold_cross_validation to find the best parameters
-					best_model_params, pred_model = k_l_fold_cross_validation (train_data, target_column, model, lag = 1, n_splits = 1, block_size = valid_size)
+					best_model_params, pred_model = k_l_fold_cross_validation (train_data, target_column, model, lag = lag, n_splits = 1, block_size = valid_size)
 
 				# exception for the lstm model: execute it without cross validation because of time ...
 				elif model == 'LSTM':
 					best_model_params =  {'epochs': [20],  'neurons' : [30]}
 					pred_model = train_model (train_data, model, best_model_params, lag)
+
+				elif model == 'MLP':
+					nb_neurons = max (1, int (train_data. shape[1] / 2))
+					pred_model = MLPClassifier (hidden_layer_sizes= [nb_neurons], shuffle = False, activation='logistic')
+					pred_model. fit (train_data[:, 1:], train_data[:, 0])
+					best_model_params = {}
 
 				elif model == 'FUZZY':
 					#pred_model = MultimodalEvolutionaryClassifier()
@@ -205,31 +249,26 @@ def predict_area (subjects, target_column, set_of_behavioral_predictors, convers
 				else:
 					# extract model params from the previous k-fold-validation results
 					models_params_file = glob. glob ("results/models_params/*%s_%s.csv" %(model, convers_type))[0]
-					best_model_params = extract_models_params_from_crossv (models_params_file, target_column, lagged_names)
+					best_model_params = extract_models_params_from_crossv (models_params_file, target_column, lagged_names, dm_method)
 					# Train the model
 					pred_model = train_model (train_data, model, best_model_params, lag)
 
 				# Compute the score on test data
 				score. append (test_model (test_data[: , 1:], test_data[: , 0], pred_model, lag, model))
 
-			row = [target_column, "%s_%s"%(method, str (n_comp)), best_model_params, str (dict(behavioral_predictors)), str (lagged_names),  str ([lagged_names [i] for i in selected_indices])] \
-			+ np. mean (score, axis = 0). tolist () + np. std (score, axis = 0). tolist ()
+			if not problem_inncomp:
+				row = [target_column, dm_method, lag, best_model_params,\
+				 str (dict(behavioral_predictors)), str (lagged_names),  str ([lagged_names [i] for i in selected_indices])] \
+				+ np. mean (score, axis = 0). tolist () + np. std (score, axis = 0). tolist ()
 
-			write_line (filename, row, mode = "a+")
-
-			# if the model the baseline (random), using multiple behavioral predictors has no effect
-			if model == "baseline":
-				break
-
-		if model == "baseline":
-			break
+				write_line (filename, row, mode = "a")
 
 #====================================================================#
 
 def predict_all (subjects, _regions, lag, k, model, remove, _find_params):
 
 	print ("-- MODEL :", model)
-	colnames = ["region", "dm_method", "models_params", "predictors_dict", "predictors_list", "selected_predictors",
+	colnames = ["region", "dm_method", "lag", "models_params", "predictors_dict", "predictors_list", "selected_predictors",
 				"recall. mean", "precision. mean", "fscore. mean",  "recall. std", "precision. std", "fscore. std"]
 
 	print (_regions)
@@ -253,7 +292,6 @@ def predict_all (subjects, _regions, lag, k, model, remove, _find_params):
 			f. write ('\n')
 			f. close ()
 
-
 	# fill HH and HR conversations
 	convers = list_convers ()
 	hh_convers = []
@@ -264,7 +302,6 @@ def predict_all (subjects, _regions, lag, k, model, remove, _find_params):
 			hr_convers. append (convers [i])
 		else:
 			hh_convers. append (convers [i])
-
 
 	# Predict HH  and HR conversations separetely
 	Parallel (n_jobs=5) (delayed (predict_area)

@@ -19,8 +19,9 @@ import argparse
 from utils.vad import VoiceActivityDetector
 
 sys.path.insert(0,'src/utils/SPPAS')
+sys.path.insert(0,'.')
 
-import utils.SPPAS.sppas.src.anndata.aio.readwrite as spp
+import src.utils.SPPAS.sppas.src.anndata.aio.readwrite as spp
 
 
 #-----------------------------------------------------------------------------
@@ -202,7 +203,7 @@ if __name__ == '__main__':
 
 	print ("-----------------", conversation_name)
 
-	output_filename_1 = out_dir +  conversation_name + ".png"
+	output_filename_png = out_dir +  conversation_name + ".png"
 	output_filename_pkl = out_dir +  conversation_name + ".pkl"
 
 
@@ -211,13 +212,13 @@ if __name__ == '__main__':
 	for i in range (1, 50):
 		physio_index. append (1.205 + physio_index [i - 1])
 
-	""" exit if conversation already processed """
-	'''if os.path.isfile (output_filename_pkl):
+	# exit if conversation already processed
+	if os.path.isfile (output_filename_pkl) and os.path.isfile (output_filename_png):
 		print ("Conversation already processed")
-		exit (1)'''
+		exit (1)
 
 	# Read audio, and transcription file
-	for file in glob.glob(data_dir + "/*"):
+	'''for file in glob.glob(data_dir + "/*"):
 		if "left-reduc.TextGrid" in file:
 			transcription_left = file
 		elif "right-filter.TextGrid" in file:
@@ -237,10 +238,32 @@ if __name__ == '__main__':
 			else:
 				if "right-filter.wav" in file:
 					rate, signal = wav.read (file)
+					speech_activity = detect_speech_activity (file)'''
+
+	# Read audio, and transcription file
+	for file in glob.glob(data_dir + "/*"):
+		if "left" in file and ".TextGrid" in file and "palign.textgrid" not in file:
+			transcription_left = file
+		elif "right" in file and ".TextGrid" in file and "palign.textgrid" not in file:
+			transcription_right = file
+
+		elif "right" in file and  "palign.textgrid" in file:
+			transcription_right_palign = file
+
+		elif "left" in file and  "palign.textgrid" in file:
+			transcription_left_palign = file
+
+		elif ".wav" in file:
+			if args.left:
+				if "left" in file:
+					rate, signal = wav.read (file)
+					speech_activity = detect_speech_activity (file)
+			else:
+				if "right" in file:
+					rate, signal = wav.read (file)
 					speech_activity = detect_speech_activity (file)
 
-	'''print (speech_activity)
-	exit (1)'''
+
 	analytic_signal = hilbert(signal)
 	envelope = np. abs (analytic_signal). tolist ()
 	step_signal =  1.0 / rate
@@ -366,5 +389,5 @@ if __name__ == '__main__':
 	# Output files
 	df.to_pickle(output_filename_pkl)
 
-	ts. plot_df (df, labels, output_filename_1, figsize=(12,9), y_lim = [0,1.2])
+	ts. plot_df (df, labels, output_filename_png, figsize=(12,9), y_lim = [0,1.2])
 	#ts. plot_time_series ([time_series[label] for label in labels], labels, colors[0:len (labels)], markers=markers,figsize=(20,16), figname = output_filename_1)

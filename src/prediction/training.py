@@ -227,6 +227,12 @@ def  test_model (X, Y, model, lag, model_type = "sickit"):
 		pred = discretize_preds (pred)
 		real = discretize_preds (real)
 
+	'''print (18 * "-")
+	print (len (Y))
+	print (real)
+	print (pred)
+	print (18 * "-")'''
+
 	recall_ 	= recall_score (real, pred, average = 'weighted')
 	precision_ 	= precision_score (real, pred, average = 'weighted')
 	fscore_ 	= f1_score (real, pred, average = 'weighted')

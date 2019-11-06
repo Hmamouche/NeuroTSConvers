@@ -14,7 +14,7 @@ def plot_df (df, labels, figname, figsize=(12,9), y_lim = [0,1.2]):
 	plt.title('Title!', color='black')
 	df. plot (y=labels, sharex=True, subplots=True, xticks = df.index, fontsize = 7, grid=False, legend= False, ax=fig.gca())
 
-	ld = fig.legend(labels = labels,
+	ld = fig.legend (labels = labels,
 	       loc='upper right',   # Position of legend
 	       prop={'size':6},
 	       ncol=1,

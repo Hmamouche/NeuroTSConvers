@@ -94,7 +94,7 @@ def discretize_array (df, min = 0.1, mean = False, peak = False):
 
 	for j in range (1, M.shape [1]):
 		if peak:
-			peaks, _ = find_peaks (M[:,j], height=0)
+			peaks, _ = find_peaks (M[:,j], height=min)
 			for i in range (M.shape [0]):
 				M[i,j] = 0
 
@@ -135,6 +135,7 @@ if __name__ == '__main__':
 	args = parser.parse_args()
 
 	print (args)
+
 	""" store the discretization parameters """
 	f= open("disc_params.txt","w+")
 	for item in vars (args). items ():
@@ -180,5 +181,5 @@ if __name__ == '__main__':
 
 				else:
 					#discretize_df (df, float (args.threshold), n_classes = args. nbins)
-					df = discretize_array (df, float (args.threshold), args. mean, args. peak)
+					df = discretize_array (df, args.threshold, args. mean, args. peak)
 				df.to_pickle ("%s/%s" %(subjects_out[i], filename))

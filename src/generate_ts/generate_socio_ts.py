@@ -89,7 +89,10 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    subjects = subjects = ["sub-%02d"%i for i in args.subjects]
+    if args.subjects == [0]:
+        subjects = ["sub-%02d"%i for i in range (2, 24)]
+    else:
+        subjects = ["sub-%02d"%i for i in args.subjects]
 
     if not os. path. exists ("time_series"):
     	os. makedirs ("time_series")

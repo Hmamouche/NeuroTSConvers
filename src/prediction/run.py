@@ -113,13 +113,12 @@ def predict_area (subjects, target_column, set_of_behavioral_predictors, convers
 	if find_params:
 		numb_test = 1
 	else:
-		numb_test = 5
+		numb_test = 1
 
 	#if model == "baseline":
 		#find_params = True
 
 	for behavioral_predictors in set_of_behavioral_predictors:
-
 
 		# concatenate data of all subjects  with regards to the behavioral variables
 		all_data = concat_ (subjects [0], target_column, convers, lag, behavioral_predictors, False, reg_model)
@@ -135,14 +134,13 @@ def predict_area (subjects, target_column, set_of_behavioral_predictors, convers
 			print (behavioral_predictors)
 			exit (1)
 
-
 		# names of lagged variables
 		lagged_names = get_lagged_colnames (behavioral_predictors, lag)
 
 		# shuffle data
 		#all_data = shuffle_data_by_blocks (all_data, 45)
 		#np. random. shuffle (all_data)
-		all_data = shuffle (all_data, random_state = 5)
+		all_data = shuffle (all_data, random_state = 1)
 
 		# outlier elimination
 		outlier_model = IsolationForest (n_estimators=10, contamination = 0.2, behaviour = 'new')
@@ -270,10 +268,10 @@ def predict_all (subjects, _regions, lag, k, model, remove, _find_params):
 
 
 	# Predict HH  and HR conversations separetely
-	'''Parallel (n_jobs=5) (delayed (predict_area)
+	Parallel (n_jobs=2) (delayed (predict_area)
 	(subjects, target_column, manual_selection (target_column), convers = hh_convers, lag = int (lag), model = model, filename = filename_hh, find_params = _find_params)
-									for target_column in _regions)'''
+									for target_column in _regions)
 
-	Parallel (n_jobs=5) (delayed (predict_area)
+	Parallel (n_jobs=2) (delayed (predict_area)
 	(subjects, target_column, manual_selection (target_column), convers = hr_convers, lag = int (lag), model = model, filename = filename_hr, find_params = _find_params)
 									for target_column in _regions)

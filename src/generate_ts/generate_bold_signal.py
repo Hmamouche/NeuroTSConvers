@@ -50,7 +50,7 @@ def get_sliding_windows (n, size = 10):
 def discretize_vect (x, threshold):
 	result = []
 	for i in range (len (x)):
-		if x[i] > threshold:
+		if x[i] >= threshold:
 			result. append ([1])
 		else:
 			result. append ([0])
@@ -175,9 +175,12 @@ if __name__ == '__main__':
 			# loop over sessions
 			for i in range (4):
 
+				# discretization
 				#disc_threshold = filters. threshold_otsu ( np. array (sessions [i]))
 				#disc_threshold = np. mean (np. array (sessions [i]))
 				norm = sessions [i][:]
+				#norm = [val for sublist in sessions [i] for val in sublist]
+				#print (norm)
 				#normalize_vect (norm)
 				#disc_threshold = filters. threshold_otsu (np. array (norm))
 
@@ -185,12 +188,12 @@ if __name__ == '__main__':
 				#clustering = KMeans (n_clusters = 2, random_state = 1). fit (np.array (norm). reshape (-1, 1))
 				# norm = clustering. labels_
 
-				normalize_vect (norm)
-				discretizer = KBinsDiscretizer(n_bins=2, encode='ordinal', strategy='kmeans')
-				norm_disc = discretizer.fit_transform(norm). flatten ()
+				#normalize_vect (norm)
+				discretizer = KBinsDiscretizer (n_bins=2, encode='ordinal', strategy='kmeans')
+				norm_disc = discretizer.fit_transform (norm). flatten ()
 
 				#disc_threshold = norm[0]
-				#norm_disc = discretize_vect (norm, np. mean (norm))
+				#norm_disc = discretize_vect (norm, 0.1)
 
 				if i == 0:
 					region_data = np. array (norm)
