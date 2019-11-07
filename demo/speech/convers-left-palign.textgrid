@@ -59,7 +59,7 @@ item []:
 		intervals [12]:
 			xmin = 12.14
 			xmax = 12.25
-			text = "u"
+			text = "w"
 		intervals [13]:
 			xmin = 12.25
 			xmax = 12.350000000000001
@@ -635,7 +635,7 @@ item []:
 		intervals [10]:
 			xmin = 12.14
 			xmax = 12.350000000000001
-			text = "u-i"
+			text = "w-i"
 		intervals [11]:
 			xmin = 12.350000000000001
 			xmax = 12.450000000000001

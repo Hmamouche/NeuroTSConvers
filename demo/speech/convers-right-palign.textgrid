@@ -547,7 +547,7 @@ item []:
 		intervals [134]:
 			xmin = 42.774989000000005
 			xmax = 42.994989000000004
-			text = "e"
+			text = "@"
 		intervals [135]:
 			xmin = 42.994989000000004
 			xmax = 43.239909
@@ -655,7 +655,7 @@ item []:
 		intervals [161]:
 			xmin = 52.649977
 			xmax = 52.769977
-			text = "u"
+			text = "w"
 		intervals [162]:
 			xmin = 52.769977
 			xmax = 52.879977
@@ -671,7 +671,7 @@ item []:
 		intervals [165]:
 			xmin = 53.099977
 			xmax = 53.209977
-			text = "u"
+			text = "w"
 		intervals [166]:
 			xmin = 53.209977
 			xmax = 53.319977
@@ -1431,7 +1431,7 @@ item []:
 		intervals [62]:
 			xmin = 42.554989000000006
 			xmax = 42.994989000000004
-			text = "l-e"
+			text = "l-@"
 		intervals [63]:
 			xmin = 42.994989000000004
 			xmax = 43.239909
@@ -1479,7 +1479,7 @@ item []:
 		intervals [74]:
 			xmin = 52.649977
 			xmax = 52.879977
-			text = "u-i"
+			text = "w-i"
 		intervals [75]:
 			xmin = 52.879977
 			xmax = 53.099977
@@ -1487,7 +1487,7 @@ item []:
 		intervals [76]:
 			xmin = 53.099977
 			xmax = 53.319977
-			text = "u-i"
+			text = "w-i"
 		intervals [77]:
 			xmin = 53.319977
 			xmax = 53.429977

@@ -17,13 +17,13 @@ title = 'Brain activity predictions'
 fig = plt.figure()
 fig_legend = plt.figure(figsize=(3, 1.5))
 ax = fig.add_subplot(111)
-bars = ax.bar(range(4), range(4), color=colors[0:len (regions)], label=regions)
+bars = ax.bar(range(len (regions)), range(len (regions)), color=colors[0:len (regions)], label=regions)
 fig_legend.legend(bars.get_children(), regions, loc='center', frameon=False)
 fig_legend. savefig ("demo/legend.png")
 plt.clf ()
 plt. cla ()
 plt. close ()
-
+#exit (1)
 
 # SAVE PREDICTIONS AS A VIDEO
 fig, ax = plt.subplots (nrows = len (regions), ncols = 1, figsize=(10,6),  sharex=True)

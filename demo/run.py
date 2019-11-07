@@ -38,14 +38,14 @@ def speech_features (compute_features, out_dir):
 	return speech_left, speech
 
 #---------------------------------------------------#
-def facial_features (compute_features, out_dir):
+def facial_features (compute_features, out_dir, openface_path):
 	""" facial features  """
 
 	if out_dir[-1] != '/':
 		out_dir += '/'
 
 	if compute_features:
-		os. system ("python src/generate_ts/facial_action_units.py demo/video/sub-07_convers-TestBlocks1_CONV1_001.avi %s -op ../../OpenFace/"%out_dir)
+		os. system ("python src/generate_ts/facial_action_units.py demo/video/sub-07_convers-TestBlocks1_CONV1_001.avi %s -op %s"%(out_dir, openface_path))
 
 	video_features = glob.glob (out_dir + "*.pkl")[0]
 	video_feats = pd. read_pickle (video_features)
@@ -72,108 +72,99 @@ def eyetracking_features (compute_features, out_dir):
 
 #---------------------------------------------------#
 if __name__ == '__main__':
-	parser = argparse. ArgumentParser ()
-	parser. add_argument ('--regions','-rg', nargs = '+', type=int)
-	parser. add_argument ('--type','-t', help = ' conversation type (human or robot)')
-	parser. add_argument ('--lag','-p', type=int)
-	parser. add_argument ("--generate", "-g", help = "generate features from input signals", action="store_true")
-	args = parser.parse_args()
+    parser = argparse. ArgumentParser ()
+    parser. add_argument ('--regions','-rg', nargs = '+', type=int)
+    parser. add_argument ('--type','-t', help = ' conversation type (human or robot)')
+    parser. add_argument ('--lag','-p', default = 6, type=int)
+    parser. add_argument ('--openface_path','-ofp', help = "path to openface")
+    parser. add_argument ("--generate", "-g", help = "generate features from input signals", action="store_true")
+    args = parser.parse_args()
 
-	regions = args. regions
+    regions = args. regions
 
-	# GET REGIONS NAMES FOR THEIR CODES
-	brain_areas_desc = pd. read_csv ("brain_areas.tsv", sep = '\t', header = 0)
-	regions = []
+    # GET REGIONS NAMES FOR THEIR CODES
+    brain_areas_desc = pd. read_csv ("brain_areas.tsv", sep = '\t', header = 0)
+    regions = []
 
-	for num_region in args. regions:
-		regions. append (brain_areas_desc . loc [brain_areas_desc ["Code"] == num_region, "Name"]. values [0])
+    for num_region in args. regions:
+    	regions. append (brain_areas_desc . loc [brain_areas_desc ["Code"] == num_region, "Name"]. values [0])
 
-	""" OUTPUT DIRECTORY FOT THE GENERATED TIME SERIES """
-	for dirct in ["demo/generated_time_series", "demo/generated_time_series/speech", "demo/generated_time_series/video", "demo/generated_time_series/eyetracking"]:
-		if not os.path.exists (dirct):
-			os.makedirs (dirct)
+    """ OUTPUT DIRECTORY FOT THE GENERATED TIME SERIES """
+    for dirct in ["demo/generated_time_series", "demo/generated_time_series/speech", "demo/generated_time_series/video", "demo/generated_time_series/eyetracking"]:
+    	if not os.path.exists (dirct):
+    		os.makedirs (dirct)
 
-	out_dir = "demo/generated_time_series/"
+    out_dir = "demo/generated_time_series/"
 
-	""" GENERATE MULTIMODAL TIME SERIES FROM RAW SIGNALS """
-	speech_left, speech = speech_features (args.generate, "demo/generated_time_series/speech")
-	video = facial_features (args.generate, "demo/generated_time_series/video")
-	eyetracking = eyetracking_features (args.generate, "demo/generated_time_series/eyetracking")
-
-
-	""" CONCATENATE MULTIMODAL DATA """
-	all_data = np. concatenate ((speech_left. values, speech. values[:,1:], video. values[:,1:], eyetracking. values[:,1:]), axis = 1)
-
-	columns = list (speech_left. columns) +  list (speech. columns [1:]) + list (video. columns [1:]) + list (eyetracking. columns [1:])
-
-	# WRIGHT MULTIMODAL TIME SERIES TO CSV FILE
-	pd. DataFrame (all_data, columns = columns). to_csv (out_dir + "all_features.csv", sep = ';', index = False)
+    """ GENERATE MULTIMODAL TIME SERIES FROM RAW SIGNALS """
+    speech_left, speech = speech_features (args.generate, "demo/generated_time_series/speech")
+    video = facial_features (args.generate, "demo/generated_time_series/video", args.openface_path)
+    eyetracking = eyetracking_features (args.generate, "demo/generated_time_series/eyetracking")
 
 
-	lagged_names = []
-	for col in columns [1: ]:
-		lagged_names. extend ([col + "_t%d"%(p) for p in range (args. lag, 2, -1)])
+    """ CONCATENATE MULTIMODAL DATA """
+    all_data = np. concatenate ((speech_left. values, speech. values[:,1:], video. values[:,1:], eyetracking. values[:,1:]), axis = 1)
 
-	all_data = pd. DataFrame (toSuppervisedData (all_data, args. lag). data, columns = lagged_names)
+    columns = list (speech_left. columns) +  list (speech. columns [1:]) + list (video. columns [1:]) + list (eyetracking. columns [1:])
 
-
-	""" load the best models for each regions """
-	if args. type == 'h':
-		conversation_type = 'HH'
-	elif args. type == 'r':
-		conversation_type = 'HR'
-
-	else:
-		print ("Error in arguments, use -h for help!")
-		exit (1)
-
-	trained_models = glob. glob ("trained_models/*%s.pkl"%conversation_type)
+    # WRIGHT MULTIMODAL TIME SERIES TO CSV FILE
+    pd. DataFrame (all_data, columns = columns). to_csv (out_dir + "all_features.csv", sep = ';', index = False)
 
 
-	# dictionary of predictions: results
-	preds = {}
-	for region in regions:
-		print (region, "\n", 18 * '-')
-		predictors_data = pd. DataFrame ()
-		predictors_data. columns = []
-		fname = ""
-		for filename in trained_models:
-		    if region in  filename:
-		        fname = filename
-		        break
+    lagged_names = []
+    for col in columns [1: ]:
+    	lagged_names. extend ([col + "_t%d"%(p) for p in range (args. lag, 2, -1)])
 
-		model_name = fname. split ('/')[-1]. split ('_') [0]
-		print (model_name)
-		model = joblib.load (fname)
-
-		predictors = literal_eval (get_predictors_dict (model_name, region))
-		print (predictors, "\n -------------")
-
-		predictors_data = all_data. loc [:, predictors]
-
-		#predictors_data = toSuppervisedData (predictors_data.values, 7, add_target = True). data
-
-		pred = model. predict (predictors_data)
-		#print (pred)
-		preds [region] = [0 for i in range (args. lag)] + pred. tolist ()
+    all_data = pd. DataFrame (toSuppervisedData (all_data, args. lag). data, columns = lagged_names)
 
 
+    """ load the best models for each regions """
+    if args. type == 'h':
+    	conversation_type = 'HH'
+    elif args. type == 'r':
+    	conversation_type = 'HR'
 
-	# time index : fMRI recording frequency
-	step = 1.205
-	index = [step]
-	for i in range (1, args. lag + len (pred)):
-		index. append (index [i - 1] + step)
+    else:
+    	print ("Error in arguments, use -h for help!")
+    	exit (1)
+
+    trained_models = glob. glob ("trained_models/*%s.pkl"%conversation_type)
 
 
-	pd. DataFrame (preds, index = index). to_csv ("demo/predictions.csv", sep = ';', index_label = ["Time (s)"])
+    # dictionary of predictions: results
+    preds = {}
+    for region in regions:
+    	print (region, "\n", 18 * '-')
+    	predictors_data = pd. DataFrame ()
+    	predictors_data. columns = []
+    	fname = ""
+    	for filename in trained_models:
+    	    if region in  filename:
+    	        fname = filename
+    	        break
+
+    	model_name = fname. split ('/')[-1]. split ('_') [0]
+    	#print (model_name)
+    	model = joblib.load (fname)
+
+    	predictors = literal_eval (get_predictors_dict (model_name, region))
+    	print ("Predictors time series: ", predictors, "\n -------------")
+
+    	predictors_data = all_data. loc [:, predictors]
+
+    	#predictors_data = toSuppervisedData (predictors_data.values, 7, add_target = True). data
+
+    	pred = model. predict (predictors_data)
+    	#print (pred)
+    	preds [region] = [0 for i in range (args. lag)] + pred. tolist ()
 
 
 
+    # time index : fMRI recording frequency
+    step = 1.205
+    index = [step]
+    for i in range (1, args. lag + len (pred)):
+    	index. append (index [i - 1] + step)
 
 
-
-
-
-
-
+    pd. DataFrame (preds, index = index). to_csv ("demo/predictions.csv", sep = ';', index_label = ["Time (s)"])
