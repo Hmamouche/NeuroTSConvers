@@ -25,7 +25,7 @@ A feature selection step is performed to select the input variables for the pred
 
   * A example is provided in the folder "demo". To run the example:
   ```bash
-  python demo/run.py -g -t h -rg 5 6 6 7 8 -ofp "path_to_openface"
+  python demo/run.py -g -t h -rg 5 6 7 8 9 -ofp "path_to_openface"
 
   -g : to generate behavioral features from raw signals
   -t : type on interaction. -h for human-human and -r for human-robot.
