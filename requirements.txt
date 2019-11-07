@@ -1,6 +1,6 @@
 matplotlib==3.0.3
 argparse==1.4.0
-Pillow==3.3.2
+Pillow==6.2.0
 imutils==0.5.2
 textblob==0.15.3
 textblob-fr==0.2.0
