@@ -39,7 +39,7 @@ item []:
 		intervals [7]:
 			xmin = 7.599977
 			xmax = 7.679977
-			text = "Z"
+			text = "S"
 		intervals [8]:
 			xmin = 7.679977
 			xmax = 7.759977
@@ -547,7 +547,7 @@ item []:
 		intervals [134]:
 			xmin = 42.774989000000005
 			xmax = 42.994989000000004
-			text = "@"
+			text = "e"
 		intervals [135]:
 			xmin = 42.994989000000004
 			xmax = 43.239909
@@ -1207,7 +1207,7 @@ item []:
 		intervals [6]:
 			xmin = 7.599977
 			xmax = 7.679977
-			text = "Z"
+			text = "S"
 		intervals [7]:
 			xmin = 7.679977
 			xmax = 7.999977
@@ -1431,7 +1431,7 @@ item []:
 		intervals [62]:
 			xmin = 42.554989000000006
 			xmax = 42.994989000000004
-			text = "l-@"
+			text = "l-e"
 		intervals [63]:
 			xmin = 42.994989000000004
 			xmax = 43.239909

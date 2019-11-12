@@ -46,7 +46,8 @@ for i in range (1,len (index)):
 		ax[j]. plot (index [:i], df. iloc [:i, j], linewidth = 2, color = colors [j])
 	camera.snap()
 
-animation = camera.animate (repeat = False, interval = 1200)
+animation = camera.animate (repeat = False, interval = 1205)
 
 animation.save('demo/predictions_video.mp4')
+fig. savefig ("demo/predictions.png")
 #plt. show ()

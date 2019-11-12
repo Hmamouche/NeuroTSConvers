@@ -67,7 +67,7 @@ item []:
 		intervals [14]:
 			xmin = 12.350000000000001
 			xmax = 12.450000000000001
-			text = "Z"
+			text = "S"
 		intervals [15]:
 			xmin = 12.450000000000001
 			xmax = 12.55
@@ -639,7 +639,7 @@ item []:
 		intervals [11]:
 			xmin = 12.350000000000001
 			xmax = 12.450000000000001
-			text = "Z"
+			text = "S"
 		intervals [12]:
 			xmin = 12.450000000000001
 			xmax = 12.55
