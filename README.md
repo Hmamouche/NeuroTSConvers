@@ -11,9 +11,8 @@ A feature selection step is performed to select the input variables for the pred
 
 
 ## Dependencies
-
-  * Openface is required (https://github.com/TadasBaltrusaitis/OpenFace) to compute facial features from videos.
-
+  * python>=3.6
+  * Openface is required (https://github.com/TadasBaltrusaitis/OpenFace) to compute facial features from videos. 
   * Install dependencies for python3:
     ```bash
     pip install -r requirements.txt
