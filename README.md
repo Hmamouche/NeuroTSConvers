@@ -1,7 +1,7 @@
 <!--- ## Introduction --->
 ## Introduction
-This repository represent a system of brain activity measured through the BOLD signal prediction using behavioral features.
-The behavioral features represent verbal and non-verbal variables extracted during an experience of human-human and human-robot conversations conducted on several subjects.
+This repository represent a system of brain activity prediction using behavioral features.
+The behavioral features represent verbal and non-verbal variables extracted during a fMRI experience of human-human and human-robot conversations conducted on several subjects.
 The aim is to detect the behavioral features that are responsible for the activation of each brain area, by means of prediction.
 A feature selection step is performed to select the input variables for the prediction of brain activity, then the most relevant input features are those how lead to the best prediction score.
 
@@ -11,10 +11,9 @@ A feature selection step is performed to select the input variables for the pred
 
 
 ## Dependencies
-
-  * Openface is required (https://github.com/TadasBaltrusaitis/OpenFace) to compute facial features from videos.
-
-  * Install dependencies for python3:
+  * python>=3.6
+  * Openface is required (https://github.com/TadasBaltrusaitis/OpenFace) to compute facial features from videos. 
+  * Install dependencies for python:
     ```bash
     pip install -r requirements.txt
     ```
