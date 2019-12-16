@@ -3,9 +3,9 @@ Modality	Features	Representation as time series (per secondes)	Type	Remarques
 	talk	binary variable representing if there is a talk or not at recorded time, i.e., direct projection of IPU in the axe of the BOLD signal.		
 	IUP	The percentage of IPUs in each time step. It changes betwee, 0 and 1. It is equal to 1 if the timestep (1.2s) is full talk, and equal to 0 if no talk.		
 	overlap	The percentage of overlaps  in each time step. Similarly to the IPU variable.		
-	filled_breaks	The percentage of filled breaks duration  in each time step.		'[u"euh",u"heu",u"hum",u"mh"]
-	feed_back	Percentage of feedbacks in each time step.		'[u"mh",u"ouais",u"oui",u''non'',u''ah'',u"mouais"]+ OK_FORMS + VOILA_FORMS + DACCORD_FORMS + LAUGHTER_FORMS'
-Speech	discourse_markers	The percentage of discourse marskers durations in each tim step.		'[u"alors",u"mais",u"donc",u''et'',u''puis'',u''enfin'',u''parceque'',u''parcequ'',u''ensuite'']'
+	filled_breaks	The percentage of filled breaks duration  in each time step.	'[u"euh",u"heu",u"hum",u"mh"]
+	feed_back	Percentage of feedbacks in each time step.	'[u"mh",u"ouais",u"oui",u''non'',u''ah'',u"mouais"]+ OK_FORMS + VOILA_FORMS + DACCORD_FORMS + LAUGHTER_FORMS'
+Speech	discourse_markers	The percentage of discourse marskers durations in each tim step.	'[u"alors",u"mais",u"donc",u''et'',u''puis'',u''enfin'',u''parceque'',u''parcequ'',u''ensuite'']'
 	Laughers	The  percentage of laughers durations in each tim step.		'[u''@'',u''@ @'',u''@@'']'
 	particles_items	The duration in percentage of discourse marskers in each tim step. The next version is to consider just the particles in the end of each IPU as binary variable.		'[u"quoi",u"hein",u"bon",u''mais'',u''ben'',u''beh'',u''enfin'',u''vois'',u''putain'',u''bref'']'
 	reaction_time	The waiting or reaction time after responding. It is positive if the interlocutor wait some time then respond, or negative if there is overlap.		
